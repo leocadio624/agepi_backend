@@ -8,9 +8,6 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from apps.users.api.serializers import UserTokenSerializer
 
-"""
-Validate Token
-"""
 class UserToken(APIView):
     def get(self, request, *args, **kwargs):
         try:
@@ -70,9 +67,9 @@ class Login(ObtainAuthToken):
                     }, status = status.HTTP_200_OK)
 
             else:
-                return Response({'error':'Este usuario no puede iniciar sesion'}, status = status.HTTP_401_UNAUTHORIZED)
+                return Response({'message':'Este usuario no puede iniciar sesion'}, status = status.HTTP_401_UNAUTHORIZED)
         else:
-            return Response({'mensaje':'Nombre de usuario o contraseña incorrectos'}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({'message':'Nombre de usuario o contraseña incorrectos'}, status = status.HTTP_400_BAD_REQUEST)
         #return Response({'mensaje':'hay un error'}, status = status.HTTP_200_OK)
 
 class Logout(APIView):

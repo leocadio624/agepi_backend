@@ -13,6 +13,7 @@ class ProtocolSerializer(serializers.ModelSerializer):
             'number':instance.number,
             'title':instance.title,
             'sumary':instance.sumary,
+            'fileProtocol': instance.fileProtocol.url if instance.fileProtocol != '' else '',
             'protocol_state':instance.protocol_state.description if instance.protocol_state is not None else ''
         }
 

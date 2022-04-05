@@ -7,7 +7,8 @@ from apps.base.api import GeneralListApiView
 from apps.users.authentication_mixins import Authentication
 from apps.protocol.api.serializers.protocol_serializers import ProtocolSerializer
 
-class ProtocolViewSet(Authentication, viewsets.ModelViewSet):
+#class ProtocolViewSet(Authentication, viewsets.ModelViewSet):
+class ProtocolViewSet(viewsets.ModelViewSet):
     serializer_class = ProtocolSerializer
     
     def get_queryset(self, pk = None):

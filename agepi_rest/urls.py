@@ -23,7 +23,7 @@ urlpatterns = [
     path('logout/', Logout.as_view(), name = 'logout' ),
     path('refresh-token/', UserToken.as_view(), name = 'refresh_token' ),
     path('usuario/', include('apps.users.api.urls')),
-    path('protocols/', include('apps.protocol.api.routers')),
+    path('protocolos/', include('apps.protocol.api.routers')),
     path('teams/', include('apps.team.api.routers')),
     #path('protocol/', include('apps.protocol.api.urls')),
 ]

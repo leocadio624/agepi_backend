@@ -28,17 +28,24 @@ def user_api_view(request):
         else:
             print(test_user.errors)
         """
-
         return Response(users_serializer.data)
 
+
+
     elif request.method == 'POST':
+        
+        users = User.objects.filter(is_active = True, email = request.data['email'] )
+        if len(users) > 0:
+            return Response({'message':'El correo electr&oacute;nico proporcionado ya esta en uso'}, status = status.HTTP_226_IM_USED)
+
+        
         user_serializer = UserSerializer(data = request.data)
         if user_serializer.is_valid():
             user_serializer.save()
-            #print(user_serializer.data)
-            return Response(user_serializer.data)
-        return Response(user_serializer.errors)
+            return Response(user_serializer.data, status = status.HTTP_200_OK)
+        return Response(user_serializer.errors, status = status.HTTP_226_IM_USED)
 
+    
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def user_detail_api_view(request, pk=None):

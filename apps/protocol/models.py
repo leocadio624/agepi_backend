@@ -31,7 +31,7 @@ class Protocol(BaseModel):
     title = models.CharField('Titulo de protocolo', max_length = 150, blank = False, null = False)
     sumary = models.TextField('Resumen de protocolo', blank = False, null = True)
     protocol_state = models.ForeignKey(ProtocolState, on_delete = models.CASCADE, verbose_name = 'Estado del prtocolo', null = True, blank = False)
-    #protocol_state = models.ForeignKey(ProtocolState, on_delete = models.CASCADE, verbose_name = 'Estado del prtocolo', null = True)
+    fileProtocol = models.FileField('Archivo de protocolo', upload_to = 'protocolos/', null = True, blank = True)
     historical = HistoricalRecords()
 
     @property

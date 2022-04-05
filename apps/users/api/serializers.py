@@ -11,6 +11,19 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = '__all__'
 
+
+    """
+    def validate_email(self, value):
+        print("validate email")
+        return value
+
+    """
+    def validate(self, data):
+        print("validate general")
+        #raise serializers.ValidationError('XD')
+        return data
+
+
     #Sobreescribiendo estas dos funciones se encripta el campo password
     #en la creacion y actualizacion de usuarios
     def create(self, validated_data):
@@ -30,6 +43,9 @@ class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
     
+
+    
+
     def to_representation(self, instance):
         return{
             'id':instance['id'],
@@ -40,6 +56,7 @@ class UserListSerializer(serializers.ModelSerializer):
 
 
 class TestUserSerializer(serializers.Serializer):
+    
     name = serializers.CharField(max_length = 200)
     email = serializers.EmailField()
 
@@ -51,16 +68,21 @@ class TestUserSerializer(serializers.Serializer):
         return value
 
     def validate_email(self, value):
+        #print("validate email")
+        print(value)
+        """
         if value == '':
             raise serializers.ValidationError('Tiene que inidicar un correo electronico')
-        """
+
         if self.validate_name(self.context['name']) in value:
             raise serializers.ValidationError('El email no pude contener el nombre')
         """
         return value
 
     def validate(self, data):
+        #print("validate")
         return data
+
     
     def create(self, validated_data):
         return User.objects.create(**validated_data)
