@@ -24,12 +24,25 @@ class ProtocolViewSet(viewsets.ModelViewSet):
 
     #post
     def create(self, request):
-        serializer = self.serializer_class(data = request.data)    
+
+        serializer = self.serializer_class(data = request.data)
+        nextProtocolo = len(self.get_queryset())
+
+        if nextProtocolo == 0:  
+            nextProtocolo = 1
+        else:
+            nextProtocolo = nextProtocolo + 1
+        
+        nextProtocolo = "%02d" % (nextProtocolo,)
+        request.data['number'] = nextProtocolo
+
+
         if serializer.is_valid():
             serializer.save()
-            return Response({'message':'Protocolo creado'}, status = status.HTTP_200_OK)
+            return Response(serializer.data, status = status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
+    
     #update
     def update(self, request, pk = None):
         if self.get_queryset(pk):

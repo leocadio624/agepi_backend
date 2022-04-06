@@ -1,3 +1,5 @@
+import os
+import datetime
 from django.db import models
 from simple_history.models import HistoricalRecords
 from apps.base.models import BaseModel
@@ -25,13 +27,21 @@ class ProtocolState(BaseModel):
         return self.description
 
 
+def user_directory_path(instance, filename):
+    return os.path.join(
+        'protocols',
+        instance.number,
+        datetime.datetime.now().strftime('%Y_%m_%d__%H_%M'), 
+        filename)
+
+
 class Protocol(BaseModel):
 
     number = models.CharField('Numero de protocolo', max_length = 10, blank = False, null = False, unique = True)
     title = models.CharField('Titulo de protocolo', max_length = 150, blank = False, null = False)
     sumary = models.TextField('Resumen de protocolo', blank = False, null = True)
     protocol_state = models.ForeignKey(ProtocolState, on_delete = models.CASCADE, verbose_name = 'Estado del prtocolo', null = True, blank = False)
-    fileProtocol = models.FileField('Archivo de protocolo', upload_to = 'protocolos/', null = True, blank = True)
+    fileProtocol = models.FileField('Archivo de protocolo', upload_to = user_directory_path, null = True, blank = True)
     historical = HistoricalRecords()
 
     @property
