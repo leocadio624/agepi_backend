@@ -25,6 +25,12 @@ class ProtocolViewSet(viewsets.ModelViewSet):
     #post
     def create(self, request):
 
+        """
+        request.data['number'] = '100'
+        print(request.data)
+        return Response({'message':'respuesta generica'}, status = status.HTTP_200_OK)
+        """
+        
         serializer = self.serializer_class(data = request.data)
         nextProtocolo = len(self.get_queryset())
 
