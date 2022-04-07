@@ -1,4 +1,4 @@
-from apps.protocol.models import Protocol
+from apps.protocol.models import Protocol, keyWord
 from rest_framework import serializers
 
 class ProtocolSerializer(serializers.ModelSerializer):
@@ -16,5 +16,24 @@ class ProtocolSerializer(serializers.ModelSerializer):
             'fileProtocol': instance.fileProtocol.url if instance.fileProtocol != '' else '',
             'protocol_state':instance.protocol_state.description if instance.protocol_state is not None else ''
         }
+
+
+
+
+class keyWordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = keyWord
+        #fields = '__all__'
+        exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
+
+    def to_representation(self, instance):
+        return {
+            'id':instance.id,
+            'state':instance.state,
+            'word':instance.word,
+            'fk_Protocol':instance.fk_Protocol.id
+        }
+    """
+    """
 
 

@@ -57,3 +57,22 @@ class Protocol(BaseModel):
         verbose_name_plural = 'Protocolos'
 
 
+class keyWord(BaseModel):
+
+    word = models.CharField('Palabra clave', max_length = 50, blank = False, null = False, unique = False)
+    fk_Protocol = models.ForeignKey(Protocol, on_delete = models.CASCADE, verbose_name = 'pk de prtocolo', null = True, blank = False)
+    historical = HistoricalRecords()
+
+    @property
+    def _history_user(self):
+        return self.change_by
+    
+    @_history_user.setter
+    def _history_user(self, vale):
+        self.changed_by = value
+
+    class Meta:
+        verbose_name = 'Palabra clave'
+        verbose_name_plural = 'Palabras clave'
+
+
