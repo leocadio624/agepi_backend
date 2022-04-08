@@ -29,11 +29,9 @@ class keyWordSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return {
             'id':instance.id,
-            'state':instance.state,
             'word':instance.word,
             'fk_Protocol':instance.fk_Protocol.id
         }
-    """
-    """
+        
 
 

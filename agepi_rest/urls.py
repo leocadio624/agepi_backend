@@ -15,13 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from apps.users.views import Login, Logout, UserToken
+from apps.users.views import Login, Logout, UserToken, DownloadFile
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', Login.as_view(), name = 'login' ),
     path('logout/', Logout.as_view(), name = 'logout' ),
     path('refresh-token/', UserToken.as_view(), name = 'refresh_token' ),
+    path('downloadFile/', DownloadFile.as_view(), name = 'downloadFile' ),
     path('usuario/', include('apps.users.api.urls')),
     path('protocolos/', include('apps.protocol.api.routers')),
     path('teams/', include('apps.team.api.routers')),

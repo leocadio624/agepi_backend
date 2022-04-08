@@ -4,4 +4,6 @@ from apps.protocol.api.views.protocol_views import ProtocolViewSet, keyWordViewS
 router = DefaultRouter()
 router.register(r'protocolos', ProtocolViewSet, basename = 'protocolos')
 router.register(r'palabras_clave', keyWordViewSet, basename = 'palabras_clave')
+
+
 urlpatterns = router.urls
