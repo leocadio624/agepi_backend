@@ -5,6 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from rest_framework.authtoken.models import Token
+from apps.protocol.models import Protocol
+
 from rest_framework.authtoken.views import ObtainAuthToken
 from apps.users.api.serializers import UserTokenSerializer
 
@@ -31,31 +33,18 @@ class UserToken(APIView):
 
 
 class DownloadFile(APIView):
+    def post(self, request, *args, **kwargs):    
+        path = request.data['pathProtocol']
+        base = Path(__file__).resolve().parent.parent.parent
+        pathFile  = str(base) + path
 
-    def get(self, request, *args, **kwargs):
-        """
-        
-        
-        ruta = '/media/protocols/01/2022_04_07__02_23/lm555.pdf'
-
-
-        """
-
-        ruta = '/home/hsu/Documentos/entornos_virtuales/django-rest/agepi_rest/media/protocols/01/2022_04_07__02_23/lm555.pdf'
-        document = open(ruta, 'rb')
+        document = open(pathFile, 'rb')
 
         response = HttpResponse(FileWrapper(document), content_type='application/msword')
-        #response['Content-Disposition'] = 'attachment; filename="%s"' % ruta
         response['Content-Disposition'] = 'attachment'
-
-        #response['Content-Disposition'] = 'attachment; filename="%s"' % queryset.file.name
         return response
 
-        #BASE_DIR = Path(__file__).resolve().parent.parent
-        #print(BASE_DIR)
-
-
-        return Response({'message':'respuesta generica'}, status = status.HTTP_200_OK)
+        
 
 class Login(ObtainAuthToken):
     def post(self, request, *args, **kwargs):

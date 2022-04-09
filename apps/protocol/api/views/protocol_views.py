@@ -80,33 +80,52 @@ class ProtocolViewSet(viewsets.ModelViewSet):
 class keyWordViewSet(viewsets.ModelViewSet):
     serializer_class = keyWordSerializer
     
+    
     def get_queryset(self, pk = None):
+        
         if pk is None:
             return self.get_serializer().Meta.model.objects.filter(state = True)
-        else:
+        else:            
             return self.get_serializer().Meta.model.objects.filter(id = pk, state = True).first()  
 
+
     def list(self, request):
+
         keyWord_serializer = self.get_serializer(self.get_queryset(), many = True)
+
         return Response(keyWord_serializer.data, status = status.HTTP_200_OK)
 
 
     def create(self, request):
         serializer = self.serializer_class(data = request.data)
-        """
-        print(serializer.is_valid())
-        """
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status = status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
-        #return Response({'message':'respuesta generica'}, status = status.HTTP_200_OK)
+        
+
+
+class wordListViewSet(viewsets.ModelViewSet):
+    serializer_class = keyWordSerializer
+
+    def get_queryset(self, keyWord):
+        return self.get_serializer().Meta.model.objects.filter(fk_Protocol = keyWord, state = True)
+
+    def list(self, request):
+        keyWord = request.GET["key"]
+        keyWord_serializer = self.get_serializer(self.get_queryset(keyWord), many = True)
+        return Response(keyWord_serializer.data, status = status.HTTP_200_OK)
+        
+        """
+        print(request.data['key'])
+        return Response({'message':'mensaje generico'}, status = status.HTTP_200_OK)
+        """
 
 
 
-"""
-"""
+
 
 """ 
 class ProtocolListCreateAPIView(generics.ListCreateAPIView):

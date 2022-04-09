@@ -21,9 +21,9 @@ class ProtocolSerializer(serializers.ModelSerializer):
 
 
 class keyWordSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = keyWord
-        #fields = '__all__'
         exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
 
     def to_representation(self, instance):
