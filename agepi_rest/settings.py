@@ -29,12 +29,18 @@ DEBUG = True
 #ALLOWED_HOSTS = ['127.0.0.1:3000']
 ALLOWED_HOSTS = []
 
-"""
-"""
+
+
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
 ]
-TOKEN_EXPIRED_AFTER_SECONDS = 10
+
+#TOKEN_EXPIRED_AFTER_SECONDS = 10
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES':[
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ]
+}
 
 
 # Application definition
@@ -55,25 +61,12 @@ LOCAL_APPS = [
 ]
 THIRD_APPS = [
     'rest_framework',
-    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
+    #'rest_framework_simplejwt.token_bla',
     'simple_history',
     'corsheaders',
 ]
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
-
-"""
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'simple_history',
-    'apps.users'
-]
-"""
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

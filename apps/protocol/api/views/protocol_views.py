@@ -1,16 +1,16 @@
-from rest_framework import generics
 from rest_framework import status
 from rest_framework import viewsets
+#from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.base.api import GeneralListApiView
-from apps.users.authentication_mixins import Authentication
+
+
 from apps.protocol.api.serializers.protocol_serializers import ProtocolSerializer, keyWordSerializer
 
-#class ProtocolViewSet(Authentication, viewsets.ModelViewSet):
 class ProtocolViewSet(viewsets.ModelViewSet):
+
     serializer_class = ProtocolSerializer
-    #serializer_class_ = keyWordSerializer
+    #permission_classes = (IsAuthenticated,)
     
     def get_queryset(self, pk = None):
         if pk is None:
@@ -90,9 +90,7 @@ class keyWordViewSet(viewsets.ModelViewSet):
 
 
     def list(self, request):
-
         keyWord_serializer = self.get_serializer(self.get_queryset(), many = True)
-
         return Response(keyWord_serializer.data, status = status.HTTP_200_OK)
 
 
@@ -104,7 +102,19 @@ class keyWordViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status = status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
-        
+    def destroy(self, request, pk = None):
+        keyWord = self.get_queryset().filter(id = pk).first()
+
+        if keyWord:
+            keyWord.state = False
+            keyWord.save()
+            return Response(
+                {
+                'pk' : keyWord.id,
+                'fk_protocol' : keyWord.fk_Protocol.id
+                },
+                status = status.HTTP_200_OK)
+        return Response({'message':'No existe un protocolo con estos datos'}, status = status.HTTP_400_BAD_REQUEST)
 
 
 class wordListViewSet(viewsets.ModelViewSet):
@@ -118,12 +128,7 @@ class wordListViewSet(viewsets.ModelViewSet):
         keyWord_serializer = self.get_serializer(self.get_queryset(keyWord), many = True)
         return Response(keyWord_serializer.data, status = status.HTTP_200_OK)
         
-        """
-        print(request.data['key'])
-        return Response({'message':'mensaje generico'}, status = status.HTTP_200_OK)
-        """
-
-
+        
 
 
 
