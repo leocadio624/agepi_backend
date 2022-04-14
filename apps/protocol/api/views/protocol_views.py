@@ -1,6 +1,5 @@
 from rest_framework import status
 from rest_framework import viewsets
-#from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 
@@ -10,7 +9,6 @@ from apps.protocol.api.serializers.protocol_serializers import ProtocolSerialize
 class ProtocolViewSet(viewsets.ModelViewSet):
 
     serializer_class = ProtocolSerializer
-    #permission_classes = (IsAuthenticated,)
     
     def get_queryset(self, pk = None):
         if pk is None:
