@@ -21,7 +21,6 @@ class TeamSerializer(serializers.ModelSerializer):
         return data
     
 
-
     def to_representation(self, instance):
         return {
             'id':instance.id,
@@ -30,4 +29,10 @@ class TeamSerializer(serializers.ModelSerializer):
             'created_date':instance.created_date
 
         }
+        
+class TeamSerializerUpd(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
+
     
