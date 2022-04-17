@@ -3,11 +3,13 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from apps.team.api.serializers.team_serializers import TeamSerializer, TeamSerializerUpd
+from apps.team.api.serializers.team_serializers import TeamSerializer, TeamSerializerUpd, TeamMemberSerializer
 
 class TeamViewSet(viewsets.ModelViewSet):
-    serializer_class = TeamSerializer
-    serializer_upd = TeamSerializerUpd
+    serializer_class    = TeamSerializer
+    serializer_upd      = TeamSerializerUpd
+    
+
     
     def get_queryset(self, pk = None):
         if pk is None:
@@ -18,9 +20,24 @@ class TeamViewSet(viewsets.ModelViewSet):
     #post
     def create(self, request):
 
+
         serializer = self.serializer_class(data = request.data)
+
         if serializer.is_valid():
             serializer.save()
+
+            fk_team = serializer.data['id']
+            fk_user = request.data['fk_user']
+
+            serializer_member   = TeamMemberSerializer(data = {'fk_team':fk_team, 'fk_user':fk_user})
+
+            if serializer_member.is_valid():
+                print( serializer_member.is_valid() )
+                serializer_member.save()
+            else:
+                print(serializer.errors)
+
+
             return Response({
                 'message':'Se ha creado el equipo correctamente',
                 'team':serializer.data
@@ -62,7 +79,7 @@ class teamListViewSet(viewsets.ModelViewSet):
         return self.get_serializer().Meta.model.objects.filter(fk_user = id, state = True)
 
     def list(self, request):
+
         pk_user = request.GET["pk_user"]
-        print(pk_user)
         serializer = self.get_serializer(self.get_queryset(pk_user), many = True)
         return Response(serializer.data, status = status.HTTP_200_OK)

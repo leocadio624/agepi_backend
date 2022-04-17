@@ -1,4 +1,4 @@
-from apps.team.models import Team
+from apps.team.models import Team, TeamMembers
 from rest_framework import serializers
 
 
@@ -22,11 +22,14 @@ class TeamSerializer(serializers.ModelSerializer):
     
 
     def to_representation(self, instance):
+
+        integrantes = len( TeamMembers.objects.filter(fk_team = instance.id, state = True) )
         return {
             'id':instance.id,
             'fk_user':instance.fk_user.id,
             'nombre':instance.nombre,
-            'created_date':instance.created_date
+            'created_date':instance.created_date,
+            'integrantes': integrantes
 
         }
         
@@ -35,4 +38,19 @@ class TeamSerializerUpd(serializers.ModelSerializer):
         model = Team
         exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
 
+
+class TeamMemberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeamMembers
+        exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
+
+
+    def to_representation(self, instance):
+        return {
+            'id':instance.id,
+            'fk_team':instance.fk_user.id,
+            'fk_user':instance.fk_user.id,
+            'fecha_integracion':instance.created_date
+
+        }
     

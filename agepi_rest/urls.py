@@ -32,5 +32,5 @@ urlpatterns = [
     path('usuario/', include('apps.users.api.urls')),
     path('protocolos/', include('apps.protocol.api.routers')),
     path('teams/', include('apps.team.api.routers')),
-    #path('protocol/', include('apps.protocol.api.urls')),
+    path('comunidad/', include('apps.comunidad.api.routers')),
 ]
