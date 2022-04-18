@@ -29,6 +29,7 @@ class ProgramaAcademico(models.Model):
 class Alumno(BaseModel):
 	fk_programa = models.ForeignKey(ProgramaAcademico, on_delete = models.CASCADE, verbose_name = 'pk de alumno', null = False, blank = False)
 	fk_user = models.IntegerField(default = 0)
+	alta_app = models.BooleanField('Dado de alta en aplicacion', default = False)
 	email = models.EmailField('Correo Electronico', max_length = 255, unique = True)
 	boleta = models.CharField('Boleta', max_length = 255, blank = True, null = True)
 	
@@ -75,6 +76,7 @@ class Departamento(models.Model):
 class Profesor(BaseModel):
 	fk_departamento = models.ForeignKey(Departamento, on_delete = models.CASCADE, verbose_name = 'pk de profesor', null = False, blank = False)
 	fk_user = models.IntegerField(default = 0)
+	alta_app = models.BooleanField('Dado de alta en aplicacion', default = False)
 	email = models.EmailField('Correo Electronico', max_length = 255, unique = True)
 	noEmpleado = models.CharField('Numero de noEmpleado', max_length = 255, blank = True, null = True)
 	
