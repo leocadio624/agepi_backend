@@ -58,19 +58,32 @@ class AlumnoViewSet(viewsets.ModelViewSet):
     
     def create(self, request):
         serializer = self.serializer_class(data = request.data)
+
+        
+        existeEmail = self.get_serializer().Meta.model.objects.filter(email = request.data['email'], state = True).values('email')
+        existeBoleta = self.get_serializer().Meta.model.objects.filter(boleta = request.data['boleta'], state = True).values('boleta')
+
+        if existeEmail:
+            return Response({'message':'Ya se existe un alumno registrado con este correo electrónico', 'campo':'email'},status = status.HTTP_226_IM_USED)
+        if existeBoleta:
+            return Response({'message':'Ya se existe un alumno registrado con este numero de boleta', 'campo':'boleta'},status = status.HTTP_226_IM_USED)
+
+        
         if serializer.is_valid():
             serializer.save()
             return Response({
-                'message'   : 'Se ha cargado el alumno correctamente',
+                'message'   : 'Se ha registrado el alumno correctamente',
                 'alumno'    : serializer.data
                 },status = status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk = None):
-
+        
         if self.get_queryset(pk):
-            serializer = self.serializer_class(self.get_queryset(pk), data = request.data)
+            boleta = self.get_queryset(pk).boleta
+            request.data['boleta'] = boleta
 
+            serializer = self.serializer_class(self.get_queryset(pk), data = request.data)
             if  serializer.is_valid():
                 serializer.save()
                 return Response({   
@@ -78,7 +91,7 @@ class AlumnoViewSet(viewsets.ModelViewSet):
                     'alumno':serializer.data
                 }, status = status.HTTP_200_OK)
             return Response(protocol_serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-
+        return Response({'message':'No existe un alumno con estos datos'}, status = status.HTTP_400_BAD_REQUEST)
 
 
     def destroy(self, request, pk = None):
@@ -87,4 +100,4 @@ class AlumnoViewSet(viewsets.ModelViewSet):
             alumno.state = False
             alumno.save()
             return Response({'message':'Se ha eliminado el alumno correctamente'}, status = status.HTTP_200_OK)
-        return Response({'message':'No existe un protocolo con estos datos'}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({'message':'No existe un alumno con estos datos'}, status = status.HTTP_400_BAD_REQUEST)

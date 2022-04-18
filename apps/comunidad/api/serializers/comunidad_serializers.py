@@ -21,6 +21,11 @@ class AlumnoSerializer(serializers.ModelSerializer):
         model = Alumno
         exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
 
+    def validate(self, data):
+        return data
+    
+
+
     def to_representation(self, instance):
 
         if instance.alta_app and instance.fk_user != 0:
@@ -37,6 +42,9 @@ class AlumnoSerializer(serializers.ModelSerializer):
             'email':instance.email,
             'boleta':instance.boleta
         }
+
+
+
 
 class ProfesorSerializer(serializers.ModelSerializer):
     class Meta:

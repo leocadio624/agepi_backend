@@ -30,8 +30,8 @@ class Alumno(BaseModel):
 	fk_programa = models.ForeignKey(ProgramaAcademico, on_delete = models.CASCADE, verbose_name = 'pk de alumno', null = False, blank = False)
 	fk_user = models.IntegerField(default = 0)
 	alta_app = models.BooleanField('Dado de alta en aplicacion', default = False)
-	email = models.EmailField('Correo Electronico', max_length = 255, unique = True)
-	boleta = models.CharField('Boleta', max_length = 255, blank = True, null = True)
+	email = models.EmailField('Correo Electronico', max_length = 255,  blank = False, unique = False)
+	boleta = models.CharField('Boleta', 			max_length = 255,  blank = False, unique = True)
 	
 
 	@property
