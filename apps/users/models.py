@@ -36,6 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     image = models.ImageField('Imagen de perfil', upload_to = 'perfil/', max_length = 255, null = True, blank = True)
     is_active = models.BooleanField(default = True)
     is_staff = models.BooleanField(default = False)
+    rol_user = models.IntegerField(default = 0)
     historical = HistoricalRecords()
     objects = UserManager()
 

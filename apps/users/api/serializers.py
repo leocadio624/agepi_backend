@@ -9,7 +9,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id','username', 'email', 'name', 'last_name')
+        fields = ('id','username', 'email', 'name', 'last_name', 'rol_user', 'is_staff')
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta: 
@@ -24,8 +24,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     """
     def validate(self, data):
-        print("validate general")
-        #raise serializers.ValidationError('XD')
         return data
 
 

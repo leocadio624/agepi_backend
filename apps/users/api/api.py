@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from apps.users.models import User
+from apps.comunidad.models import Alumno, Profesor
+
 from apps.users.api.serializers import UserSerializer, TestUserSerializer, UserListSerializer
 
 
@@ -33,17 +35,46 @@ def user_api_view(request):
 
 
     elif request.method == 'POST':
+        is_student = request.data['is_student']
         
-        users = User.objects.filter(is_active = True, email = request.data['email'] )
-        if len(users) > 0:
-            return Response({'message':'El correo electr&oacute;nico proporcionado ya esta en uso'}, status = status.HTTP_226_IM_USED)
+        email = request.data['email']
+        alumnos = Alumno.objects.filter(email = email).values('email')
+        profesores = Profesor.objects.filter(email = email).values('email')
+
+        union  = alumnos.union(profesores)
+        
+        if len(union) == 0:
+            return Response({'message':'Tus datos no estan actualizados, favor de acudir a la CATT'}, status = status.HTTP_206_PARTIAL_CONTENT)
+
+        
+        alumnos     = Alumno.objects.filter(email = email, alta_app = True).exclude(fk_user = 0).values('id')
+        profesores  = Profesor.objects.filter(email = email, alta_app = True).exclude(fk_user = 0).values('id')
+
+        union  = alumnos.union(profesores)
+
+        if  union:
+            return Response({'message':'Este usuario ya se encuentra registrado'}, status = status.HTTP_226_IM_USED)
 
         
         user_serializer = UserSerializer(data = request.data)
-        if user_serializer.is_valid():
+        if  user_serializer.is_valid():
+
             user_serializer.save()
-            return Response(user_serializer.data, status = status.HTTP_200_OK)
-        return Response(user_serializer.errors, status = status.HTTP_226_IM_USED)
+
+            if  is_student:
+                instancia = Alumno.objects.filter(email = email, state = True).first()
+            else:
+                instancia = Profesor.objects.filter(email = email, state = True).first()
+
+            instancia.fk_user = user_serializer.data['id']
+            instancia.alta_app = True
+            instancia.save()
+
+            return Response({
+                'message':'Se ha creado el usuario correctamente',
+                'user':user_serializer.data}
+                , status = status.HTTP_201_CREATED)
+        return Response(user_serializer.errors)
 
     
 
