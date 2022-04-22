@@ -76,7 +76,13 @@ def user_api_view(request):
         if  user_serializer.is_valid():
 
             user_serializer.save()
-            sendEmailCode(name, last_name, email, code_activate, 0)
+            
+            """
+            try:
+                sendEmailCode(name, last_name, email, code_activate, 0)
+            except:
+                return Response({'message':'El servicio de correo electr&oacute;nico no esta disponible, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+            """
 
             if  is_student:
                 instancia = Alumno.objects.filter(email = email, state = True).first()
@@ -162,7 +168,11 @@ def sendActivateCodeApiView(request):
 
         if  user:
             code = codeActivation()
-            sendEmailCode(user.name, user.last_name, user.email, code, 1)
+            try:
+                sendEmailCode(user.name, user.last_name, user.email, code, 1)
+            except:
+                return Response({'message':'El servicio de correo electr&oacute;nico no esta disponible, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+
             user.code_activate = code
             user.save()
 

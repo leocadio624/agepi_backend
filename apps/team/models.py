@@ -38,5 +38,23 @@ class TeamMembers(BaseModel):
         self.changed_by = value
 
     class Meta:
-        verbose_name = 'Team member'
-        verbose_name_plural = 'Team members'
+        verbose_name = 'Miembro equipo'
+        verbose_name_plural = 'Miembros de equipo'
+
+
+class RequestTeam(BaseModel):
+    fk_team = models.ForeignKey(Team, on_delete = models.CASCADE, verbose_name = 'pk de equipo', null = False, blank = False)
+    fk_user = models.ForeignKey(User, on_delete = models.CASCADE, verbose_name = 'pk de usuario', null = False, blank = False)
+    historical = HistoricalRecords()
+
+    @property
+    def _history_user(self):
+        return self.change_by
+    
+    @_history_user.setter
+    def _history_user(self, vale):
+        self.changed_by = value
+
+    class Meta:
+        verbose_name = 'Solicitud equipo'
+        verbose_name_plural = 'Solicitudes de equipo'

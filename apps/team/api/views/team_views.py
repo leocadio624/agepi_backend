@@ -3,7 +3,8 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from apps.team.api.serializers.team_serializers import TeamSerializer, TeamSerializerUpd, TeamMemberSerializer
+from apps.team.api.serializers.team_serializers import TeamSerializer, TeamSerializerUpd, TeamMemberSerializer, AlumnoTeamSerializer
+from apps.team.models import TeamMembers
 
 class TeamViewSet(viewsets.ModelViewSet):
     serializer_class    = TeamSerializer
@@ -81,5 +82,33 @@ class teamListViewSet(viewsets.ModelViewSet):
     def list(self, request):
 
         pk_user = request.GET["pk_user"]
+        serializer = self.get_serializer(self.get_queryset(pk_user), many = True)
+        return Response(serializer.data, status = status.HTTP_200_OK)
+
+"""
+* Descripcion:  Viewset de los usuarios disponibles para integrarce a un equipo 
+* en modulo registro equipo
+* Fecha de la creacion:     22/04/2022
+* Author:                   Eduardo B 
+"""
+class AlumnoTeamViewSet(viewsets.ModelViewSet):
+    serializer_class = AlumnoTeamSerializer
+
+
+    def get_queryset(self, pk_user):
+
+        alumno = self.get_serializer().Meta.model.objects.filter(fk_user = pk_user, state = True).first()
+        programa = alumno.fk_programa.id
+        
+        #miembros = TeamMembers.objects.filter(state = True).values('fk_user').exclude(fk_user = pk_user)
+        miembros = TeamMembers.objects.all().values('fk_user')
+        print(miembros)
+
+        return  self.get_serializer().Meta.model.objects.filter(alta_app = True, fk_programa = programa, state = True).exclude(fk_user = pk_user,  fk_user__in = miembros)
+
+
+    def list(self, request):
+        pk_user = request.GET["pk_user"]
+        print(pk_user)
         serializer = self.get_serializer(self.get_queryset(pk_user), many = True)
         return Response(serializer.data, status = status.HTTP_200_OK)
