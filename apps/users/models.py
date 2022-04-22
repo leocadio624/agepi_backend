@@ -37,6 +37,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default = True)
     is_staff = models.BooleanField(default = False)
     rol_user = models.IntegerField(default = 0)
+    code_activate = models.CharField(max_length = 8, default = '',null = True, blank = True)
     historical = HistoricalRecords()
     objects = UserManager()
 

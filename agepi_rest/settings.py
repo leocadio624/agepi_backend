@@ -30,7 +30,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
 ]
@@ -153,6 +152,10 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+EMAIL_HOST = 'smtp-mail.outlook.com:587'
+EMAIL_HOST_USER = 'agepi_ipn@outlook.com'
+EMAIL_HOST_PASSWORD = 'dg1474235'
 
 
 # Static files (CSS, JavaScript, Images)
