@@ -77,12 +77,11 @@ def user_api_view(request):
 
             user_serializer.save()
             
-            """
             try:
                 sendEmailCode(name, last_name, email, code_activate, 0)
             except:
                 return Response({'message':'El servicio de correo electr&oacute;nico no esta disponible, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
-            """
+            
 
             if  is_student:
                 instancia = Alumno.objects.filter(email = email, state = True).first()

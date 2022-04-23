@@ -27,6 +27,7 @@ class TeamMembers(BaseModel):
 
     fk_team = models.ForeignKey(Team, on_delete = models.CASCADE, verbose_name = 'pk de equipo', null = False, blank = False)
     fk_user = models.ForeignKey(User, on_delete = models.CASCADE, verbose_name = 'pk de usuario', null = False, blank = False)
+    solicitudEquipo = models.IntegerField(default = 2)
     historical = HistoricalRecords()
 
     @property
@@ -42,6 +43,7 @@ class TeamMembers(BaseModel):
         verbose_name_plural = 'Miembros de equipo'
 
 
+"""
 class RequestTeam(BaseModel):
     fk_team = models.ForeignKey(Team, on_delete = models.CASCADE, verbose_name = 'pk de equipo', null = False, blank = False)
     fk_user = models.ForeignKey(User, on_delete = models.CASCADE, verbose_name = 'pk de usuario', null = False, blank = False)
@@ -58,3 +60,4 @@ class RequestTeam(BaseModel):
     class Meta:
         verbose_name = 'Solicitud equipo'
         verbose_name_plural = 'Solicitudes de equipo'
+"""
