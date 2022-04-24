@@ -66,6 +66,7 @@ LOCAL_APPS = [
     'apps.protocol',
     'apps.team',
     'apps.comunidad',
+    'apps.notification',
 ]
 THIRD_APPS = [
     'rest_framework',

@@ -25,7 +25,7 @@ class TeamSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
 
-        integrantes = len( TeamMembers.objects.filter(fk_team = instance.id, state = True) )
+        integrantes = len( TeamMembers.objects.filter(fk_team = instance.id, state = True, solicitudEquipo = 2) )
         return {
             'id':instance.id,
             'fk_user':instance.fk_user.id,
@@ -57,7 +57,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         }
 
 """
-* Descripcion:  Lista los usuarios disponibles para integrarce a un equipo 
+* Descripcion:  Lista los alumnos disponibles para integrarce a un equipo 
 * en modulo registro equipo
 * Fecha de la creacion:     22/04/2022
 * Author:                   Eduardo B 
@@ -73,7 +73,6 @@ class AlumnoTeamSerializer(serializers.ModelSerializer):
 
         instance_user = User.objects.filter(id = instance.fk_user).first()
         return {
-            #'id':instance.id,
             'pk_user':instance.fk_user,
             'name':instance_user.name,
             'last_name':instance_user.last_name,
@@ -81,7 +80,37 @@ class AlumnoTeamSerializer(serializers.ModelSerializer):
             'programa':instance.fk_programa.programa,
             'email':instance.email,
             'boleta':instance.boleta
+        }
 
+"""
+* Descripcion:  Lista los profesores disponibles para integrarce a un equipo 
+* en modulo registro equipo
+* Fecha de la creacion:     22/04/2022
+* Author:                   Eduardo B 
+"""
+class ProfesorTeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profesor
+        exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
+
+
+    
+    def to_representation(self, instance):
+
+        num_equipos = len( TeamMembers.objects.filter(fk_user = instance.fk_user, state = True, solicitudEquipo = 2) )
+        disponible = 0 if num_equipos == 6 else 1
+
+        instance_user = User.objects.filter(id = instance.fk_user).first()
+
+        return {
+            'disponible':disponible,
+            'pk_user':instance.fk_user,
+            'name':instance_user.name,
+            'last_name':instance_user.last_name,
+            'fk_departamento':instance.fk_departamento.id,
+            'departamento':instance.fk_departamento.departamento,
+            'email':instance.email,
+            'noEmpleado':instance.noEmpleado
         }
 
     

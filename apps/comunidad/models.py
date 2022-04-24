@@ -74,7 +74,7 @@ class Departamento(models.Model):
 
 
 class Profesor(BaseModel):
-	fk_departamento = models.ForeignKey(Departamento, on_delete = models.CASCADE, verbose_name = 'pk de profesor', null = False, blank = False)
+	fk_departamento = models.ForeignKey(Departamento, on_delete = models.CASCADE, verbose_name = 'fk_departamento', null = False, blank = False)
 	fk_user = models.IntegerField(default = 0)
 	alta_app = models.BooleanField('Dado de alta en aplicacion', default = False)
 	email = models.EmailField('Correo Electronico', max_length = 255, unique = True)
