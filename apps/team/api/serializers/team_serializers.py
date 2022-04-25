@@ -26,11 +26,13 @@ class TeamSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
 
         integrantes = len( TeamMembers.objects.filter(fk_team = instance.id, state = True, solicitudEquipo = 2) )
+        created_date = instance.created_date.strftime("%d/%m/%y %H:%M:%S")
+        
         return {
             'id':instance.id,
             'fk_user':instance.fk_user.id,
             'nombre':instance.nombre,
-            'created_date':instance.created_date,
+            'created_date':created_date,
             'integrantes': integrantes
 
         }
@@ -48,6 +50,8 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
 
     def to_representation(self, instance):
+        
+
         return {
             'id':instance.id,
             'fk_team':instance.fk_user.id,

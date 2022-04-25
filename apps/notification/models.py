@@ -4,6 +4,7 @@ from apps.base.models import BaseModel
 from apps.users.models import User
 
 
+
 class TipoNotificacion(models.Model):
 	id = models.IntegerField(primary_key = True)
 	descp = models.CharField('Descripccion de la notificacion', max_length = 255, blank = False, null = False, unique = False)

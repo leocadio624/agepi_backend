@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 
 from apps.team.api.serializers.team_serializers import TeamSerializer, TeamSerializerUpd, TeamMemberSerializer, AlumnoTeamSerializer, ProfesorTeamSerializer
+from apps.notification.api.serializers.notificacion_serializers import NotificacionSerializer
 from apps.team.models import TeamMembers, Team
 
 class TeamViewSet(viewsets.ModelViewSet):
@@ -144,22 +145,25 @@ class AlumnoTeamViewSet(viewsets.ModelViewSet):
                 'solicitudes' : solicitudes
             }, status = status.HTTP_200_OK)
 
+    
+    
     """
-    def list(self, request):
+    def create(self, request):
 
-        pk_user = request.GET["pk_user"]
-        #print(pk_user)
-
-        serializerProfesor = ProfesorTeamSerializer(self.queryProfesor(), many = True)
-
-        return Response({
-            'message' : 'mensaje generico',
-            'profesores' : serializerProfesor.data
-            }, status = status.HTTP_200_OK)
-
-    """
+        id = request.data['id']
+        fk_user = request.data['fk_user']
+        
         
 
+        notificacion_serilizer   = NotificacionSerializer(data = {'fk_userOrigen':id, 'fk_userDestino':fk_user, 'fk_tipoNotificacion':1})
+        print( notificacion_serilizer.is_valid() )
+
+        return Response({
+            'message' : 'mensaje generico'
+            }, status = status.HTTP_200_OK)
+    """
+
+        
     def create(self, request):
 
         id = request.data['id']
@@ -176,6 +180,13 @@ class AlumnoTeamViewSet(viewsets.ModelViewSet):
         serializer_member   = TeamMemberSerializer(data = {'fk_team':fk_team, 'fk_user':fk_user, 'solicitudEquipo':1})
         if serializer_member.is_valid():
             serializer_member.save()
+
+        notificacion_serilizer   = NotificacionSerializer(data = {'fk_userOrigen':id, 'fk_userDestino':fk_user, 'fk_tipoNotificacion':1})
+        if  notificacion_serilizer.is_valid():
+            notificacion_serilizer.save()
+            
+        
+
 
         solicitudes = []
         solicitudes = self.getSolicitudes(fk_team)
