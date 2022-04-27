@@ -1,9 +1,9 @@
 from django.contrib import admin
-from apps.notification.models import TipoNotificacion, Notificacion
+from apps.notification.models import TipoNotificacion, NotificacionTeam
 
 
 
 admin.site.register(TipoNotificacion)
-admin.site.register(Notificacion)
+admin.site.register(NotificacionTeam)
 
 

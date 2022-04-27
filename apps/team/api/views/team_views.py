@@ -4,8 +4,12 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 
 from apps.team.api.serializers.team_serializers import TeamSerializer, TeamSerializerUpd, TeamMemberSerializer, AlumnoTeamSerializer, ProfesorTeamSerializer
-from apps.notification.api.serializers.notificacion_serializers import NotificacionSerializer
+from apps.notification.api.serializers.notificacion_serializers import NotificacionTeamSerializer
+
 from apps.team.models import TeamMembers, Team
+from apps.notification.models import NotificacionTeam
+
+    
 
 class TeamViewSet(viewsets.ModelViewSet):
     serializer_class    = TeamSerializer
@@ -181,11 +185,9 @@ class AlumnoTeamViewSet(viewsets.ModelViewSet):
         if serializer_member.is_valid():
             serializer_member.save()
 
-        notificacion_serilizer   = NotificacionSerializer(data = {'fk_userOrigen':id, 'fk_userDestino':fk_user, 'fk_tipoNotificacion':1})
-        if  notificacion_serilizer.is_valid():
-            notificacion_serilizer.save()
-            
-        
+            notificacion_serilizer   = NotificacionTeamSerializer(data = {'fk_userOrigen':id, 'fk_userDestino':serializer_member.data['id'], 'fk_tipoNotificacion':1})
+            if  notificacion_serilizer.is_valid():
+                notificacion_serilizer.save()
 
 
         solicitudes = []
@@ -205,9 +207,20 @@ class AlumnoTeamViewSet(viewsets.ModelViewSet):
             return Response({'message' : 'No se encontró una solicitud con estos datos'}, status = status.HTTP_206_PARTIAL_CONTENT)
 
 
+
+
+
+        """
+        """
         solicitud.state = False
         solicitud.solicitudEquipo = 3
         solicitud.save()
+
+        notificacion = NotificacionTeam.objects.filter(state = True, fk_userDestino = solicitud.id).first()
+        notificacion.state = False
+        notificacion.save()
+
+        
 
         solicitudes = []
         solicitudes = self.getSolicitudes(solicitud.fk_team.id)

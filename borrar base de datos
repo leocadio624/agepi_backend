@@ -1,2 +1,71 @@
 find . -path “*/migrations/*.py” -not -name “__init__.py” -delete
 find . -path “*/migrations/*.pyc” -delete
+
+python3 manage.py makemigrations
+python3 manage.py migrate
+python3 manage.py shell
+
+
+
+#
+from apps.comunidad.models import ProgramaAcademico, Departamento
+from apps.notification.models import TipoNotificacion
+from apps.protocol.models import ProtocolState
+
+programa = ProgramaAcademico(id = 1, programa='ISC')
+programa.save()
+
+programa = ProgramaAcademico(id = 2, programa='Ingenieria en ciencia de datos')
+programa.save()
+
+programa = ProgramaAcademico(id = 3, programa='Ingenieria en inteligencia artificial')
+programa.save()
+
+
+departamento = Departamento(id = 1, departamento='Basicas')
+departamento.save()
+
+departamento = Departamento(id = 2, departamento='Ingenieria')
+departamento.save()
+
+
+notificacion = TipoNotificacion(id = 1, descp='Solicitar equipo')
+notificacion.save()
+
+notificacion = TipoNotificacion(id = 2, descp='Confirmación equipo')
+notificacion.save()
+
+notificacion = TipoNotificacion(id = 3, descp='Rechazar/Cancelar equipo')
+notificacion.save()
+
+notificacion = TipoNotificacion(id = 4, descp='Protocolo subido')
+notificacion.save()
+
+notificacion = TipoNotificacion(id = 5, descp='Protocolo firmado')
+notificacion.save()
+
+notificacion = TipoNotificacion(id = 6, descp='Protocolo seleccionado')
+notificacion.save()
+
+notificacion = TipoNotificacion(id = 7, descp='Protocolo evaluado parcialmente')
+notificacion.save()
+
+notificacion = TipoNotificacion(id = 8, descp='Protocolo evaluado')
+notificacion.save()
+
+
+
+
+
+
+
+
+estado_protocolo = ProtocolState(protocol_state = 1, description='Registrado')
+estado_protocolo.save()
+exit()
+
+
+
+
+
+

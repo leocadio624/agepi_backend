@@ -6,8 +6,8 @@ class BaseModel(models.Model):
     id = models.AutoField(primary_key = True)
     state = models.BooleanField('Estado', default = True)
     #created_date = models.DateField('Fecha de creacion', auto_now = False, auto_now_add = True)
-    #created_date = models.DateTimeField('Fecha de creacion', auto_now = False, auto_now_add = True, default = timezone('America/Mexico_City') )
-    created_date = models.DateTimeField('Fecha de creacion', default = timezone('America/Mexico_City') )
+    created_date = models.DateTimeField('Fecha de creacion', auto_now = False, auto_now_add = True )
+    #created_date = models.DateTimeField('Fecha de creacion', default = timezone('America/Mexico_City') )
     
     
     
