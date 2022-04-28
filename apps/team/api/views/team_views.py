@@ -25,10 +25,14 @@ class TeamViewSet(viewsets.ModelViewSet):
 
     #post
     def create(self, request):
+        
+        fk_user = request.data['fk_user']
+        equipo = TeamMembers.objects.filter(fk_user = fk_user, state = True, solicitudEquipo = 2).first()
 
+        if  equipo:
+            return Response({'message':'Ya estas perteneces al equipo '+str(equipo.fk_team.nombre)+''}, status = status.HTTP_400_BAD_REQUEST)
 
         serializer = self.serializer_class(data = request.data)
-
         if serializer.is_valid():
             serializer.save()
 
@@ -48,6 +52,8 @@ class TeamViewSet(viewsets.ModelViewSet):
                 }, status = status.HTTP_200_OK)
 
         return Response({'message':'Ya haz creado un equipo'}, status = status.HTTP_400_BAD_REQUEST)
+        
+
         
 
 
@@ -87,10 +93,69 @@ class teamListViewSet(viewsets.ModelViewSet):
         pk_user = request.GET["pk_user"]
         serializer = self.get_serializer(self.get_queryset(pk_user), many = True)
 
-
-
         return Response(serializer.data, status = status.HTTP_200_OK)
 
+
+"""
+* Descripcion:  Viewset de los integrantes de un equipo
+* utilizado en modulo 'Equipo'
+* Fecha de la creacion:     28/04/2022
+* Author:                   Eduardo B 
+"""
+class TeamMemberViewSet(viewsets.ModelViewSet):
+    serializer_class = TeamMemberSerializer
+
+    def get_queryset(self, fk_user):
+        return self.get_serializer().Meta.model.objects.filter(fk_user = fk_user, state = True, solicitudEquipo  = 2)
+
+    def create(self, request):
+
+
+        fk_user = request.data['fk_user']
+        equipos =  self.get_serializer(self.get_queryset(fk_user), many = True)
+
+
+        if len(equipos.data) == 0:
+            return Response(
+                {
+                'message':'Aun no estas integrado en ningun equipo',
+                'equipos':equipos.data
+                },status = status.HTTP_200_OK)
+
+        return Response(
+                {
+                'message':'Estas integrado a un equipo',
+                'equipos':equipos.data
+                },status = status.HTTP_200_OK)
+
+"""
+* Descripcion:  Obtiene los integrantes de un equipo por id de equipo
+* Fecha de la creacion:     28/04/2022
+* Author:                   Eduardo B 
+"""
+class TeamMembersByTeamViewSet(viewsets.ModelViewSet):
+    serializer_class = TeamMemberSerializer
+
+    def get_queryset(self, fk_team):
+        return self.get_serializer().Meta.model.objects.filter(fk_team = fk_team, state = True, solicitudEquipo  = 2)
+
+
+    def list(self, request):
+        fk_team = request.GET["fk_team"]
+        #print(fk_team)
+        serializer = self.get_serializer(self.get_queryset(fk_team), many = True)
+        return Response(serializer.data, status = status.HTTP_200_OK)
+
+        """
+        return Response(
+                {
+                'message':'Efrfrf'
+                },status = status.HTTP_200_OK)
+
+        """
+
+
+    
 """
 * Descripcion:  Viewset de los usuarios disponibles para integrarce a un equipo 
 * en modulo registro equipo
@@ -207,11 +272,6 @@ class AlumnoTeamViewSet(viewsets.ModelViewSet):
             return Response({'message' : 'No se encontró una solicitud con estos datos'}, status = status.HTTP_206_PARTIAL_CONTENT)
 
 
-
-
-
-        """
-        """
         solicitud.state = False
         solicitud.solicitudEquipo = 3
         solicitud.save()

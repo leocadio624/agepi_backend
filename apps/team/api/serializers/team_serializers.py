@@ -49,15 +49,19 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
 
 
-    def to_representation(self, instance):
-        
 
+    def to_representation(self, instance):
+        #print( instance.fk_user.name )
         return {
             'id':instance.id,
-            'fk_team':instance.fk_user.id,
+            'fk_team':instance.fk_team.id,
+            'team':instance.fk_team.nombre,
             'fk_user':instance.fk_user.id,
+            'name':instance.fk_user.name,
+            'email':instance.fk_user.email,
+            'professionalSummary':instance.fk_user.professionalSummary,
+            'last_name':instance.fk_user.last_name,
             'fecha_integracion':instance.created_date
-
         }
 
 """

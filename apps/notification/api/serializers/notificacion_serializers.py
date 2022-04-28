@@ -29,12 +29,11 @@ class NotificacionTeamSerializer(serializers.ModelSerializer):
 			str_salida = str(usuario_origen.name) +' '+str(usuario_origen.last_name) + ' te ha invitado a unirte a su equipo'
 		elif instance.fk_tipoNotificacion.id == 2:
 			str_salida = str(usuario_origen.name) +' '+str(usuario_origen.last_name) + ' se ha unido a tú equipo'
+		elif instance.fk_tipoNotificacion.id == 3:
+			str_salida = str(usuario_origen.name) +' '+str(usuario_origen.last_name) + ' ha rechazado tú solicitud de equipo'
 
+		
 		created_date = instance.created_date.strftime("%d/%m/%y %H:%M:%S")
-
-
-		
-		
 		return {
 		'id':instance.id,
 		'user_origen': str(usuario_origen.name) +' '+str(usuario_origen.last_name),

@@ -4,6 +4,8 @@ from rest_framework.response import Response
 
 from apps.notification.api.serializers.notificacion_serializers import NotificacionTeamSerializer
 from apps.team.models import TeamMembers, Team
+import json
+
 
 class NotificacionViewSet(viewsets.ModelViewSet):
     serializer_class = NotificacionTeamSerializer
@@ -61,7 +63,52 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         return Response({'message':'Ocurrio un error en la integracion al equipo'}, status = status.HTTP_400_BAD_REQUEST)
 
 
+
+class CancelInvitationViewSet(viewsets.ModelViewSet):
+    serializer_class = NotificacionTeamSerializer
+
+    def create(self, request):
+        id_notificacion = request.data['id_notificacion']
+        fk_user = request.data['id_user']
+        fk_user_origen = request.data['fk_user_origen']
+        id_teamMember = request.data['id_teamMember']
+
+        miembroEquipo = TeamMembers.objects.filter(id = id_teamMember, state = True).first()
+        if  miembroEquipo:
+
+            """
+            """
+
+            miembroEquipo.solicitudEquipo = 3
+            miembroEquipo.save()
+
+            #Cambia de estado la notificacion entrante
+            notificacion = self.get_serializer().Meta.model.objects.filter(id = id_notificacion).first()
+            notificacion.state = False
+            notificacion.save()
+
+
+            #Obtiene pk de equipo para genrar notificacion de vuelta
+            team = TeamMembers.objects.filter(fk_user = fk_user_origen, state = True, solicitudEquipo = 2).first()
+            notificacion_serilizer   = NotificacionTeamSerializer(data = {'fk_userOrigen':fk_user, 'fk_userDestino':team.id, 'fk_tipoNotificacion':3})
+            if  notificacion_serilizer.is_valid():
+                notificacion_serilizer.save()
+
+
+            return Response({'message':'Solicitud de equipo rechazada'}, status = status.HTTP_200_OK)
+        return Response({'message':'No se encontro la invitación'}, status = status.HTTP_400_BAD_REQUEST)
+
+
+        """
+        """
+
         
+
+
+
+
+
+
 
     """
 
