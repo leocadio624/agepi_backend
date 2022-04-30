@@ -54,16 +54,15 @@ notificacion = TipoNotificacion(id = 8, descp='Protocolo evaluado')
 notificacion.save()
 
 
-
-
-
-
-
-
 estado_protocolo = ProtocolState(protocol_state = 1, description='Registrado')
 estado_protocolo.save()
 exit()
 
+
+
+#eliminar objetos de tabla
+from apps.firma.models import Firma
+Firma.objects.all().delete()
 
 
 

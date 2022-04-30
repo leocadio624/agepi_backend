@@ -70,6 +70,7 @@ LOCAL_APPS = [
     'apps.team',
     'apps.comunidad',
     'apps.notification',
+    'apps.firma',
 ]
 THIRD_APPS = [
     'rest_framework',
@@ -148,8 +149,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
 LANGUAGE_CODE = 'es-mx'
-
 TIME_ZONE = 'America/Mexico_City'
+
+#TIME_ZONE='UTC'
 
 USE_I18N = True
 

@@ -12,9 +12,7 @@ class NotificacionViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self, pk = None):
 
-        
-        objects = TeamMembers.objects.filter(state = True, fk_user = pk).values('id')
-        print(objects)
+        objects = TeamMembers.objects.filter(state = True, fk_user = pk).values('id')        
         return self.get_serializer().Meta.model.objects.filter(fk_userDestino__in = objects).order_by('-created_date')
         
 
