@@ -11,6 +11,14 @@ from apps.firma.api.serializers.firma_serializers import FirmaSerializer
 from django.utils import timezone
 from datetime import date
 
+from django.conf import settings
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+import string
+import random
+
 
 class FirmaViewSet(viewsets.ModelViewSet):
     serializer_class    = FirmaSerializer
@@ -118,5 +126,45 @@ class FirmaViewSet(viewsets.ModelViewSet):
             return Response({'message':'Se ha cancelado tú firma electrónica'}, status = status.HTTP_200_OK)
         return Response({'message':'Ocurrió un error en la cancelacion de tú firma electrónica'}, status = status.HTTP_400_BAD_REQUEST)
 
-        
+class FirmaPassViewSet(viewsets.ModelViewSet):
+    serializer_class    = FirmaSerializer
 
+    
+
+    #post
+    def create(self, request):
+        pk_firma = request.data['pk_firma']
+        firma = self.get_serializer().Meta.model.objects.filter(id = pk_firma, state = True).first()
+
+        if  firma:
+            try:
+                self.sendEmailPass(firma.fk_user.name, firma.fk_user.last_name, firma.fk_user.email, firma.password_firma)
+                return Response({'message':'Contraseña enviada'}, status = status.HTTP_200_OK)
+            except:
+                return Response({'message':'Ocurrió un error en el envio de tú contraseña'}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({'message':'Ocurrió un error en el envio de tú contraseña'}, status = status.HTTP_400_BAD_REQUEST)
+
+
+    def sendEmailPass(self, name, last_name, receiver, passFirma):
+
+        receiver = 'leocadio624@gmail.com'
+        host = settings.EMAIL_HOST
+        sender = settings.EMAIL_HOST_USER
+        password = settings.EMAIL_HOST_PASSWORD
+        
+        msg = MIMEMultipart()
+        msg['From'] = sender
+        msg['To'] = receiver
+        msg['Subject'] = 'Contraseña de firma electrónica'
+        email_body = 'Hola '+name+' '+last_name+' tu contraseña de firma electrónica vigente es: '+str(passFirma)+''
+
+
+        msg.attach(MIMEText(email_body, 'plain'))
+        email_body_content = msg.as_string()
+
+        server = smtplib.SMTP(host)
+        server.starttls()
+
+        server.login(sender, password)
+        server.sendmail(sender, receiver, email_body_content)
+        server.quit()
