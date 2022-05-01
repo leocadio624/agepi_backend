@@ -5,7 +5,7 @@ from apps.base.models import BaseModel
 
 class ProgramaAcademico(models.Model):
 	id = models.IntegerField(primary_key = True)
-	programa = models.CharField('Descripccion del programa academico', max_length = 255, blank = False, null = False, unique = False)
+	programa = models.CharField('Descripccion del programa academico', max_length = 50, blank = False, null = False, unique = False)
 	historical = HistoricalRecords()
 
 
@@ -30,8 +30,8 @@ class Alumno(BaseModel):
 	fk_programa = models.ForeignKey(ProgramaAcademico, on_delete = models.CASCADE, verbose_name = 'pk de programa academico', null = False, blank = False)
 	fk_user = models.IntegerField(default = 0)
 	alta_app = models.BooleanField('Dado de alta en aplicacion', default = False)
-	email = models.EmailField('Correo Electronico', max_length = 255,  blank = False, unique = False)
-	boleta = models.CharField('Boleta', 			max_length = 255,  blank = False, unique = True)
+	email = models.EmailField('Correo Electronico', max_length = 50,  blank = False, unique = False)
+	boleta = models.CharField('Boleta', 			max_length = 50,  blank = False, unique = True)
 	
 
 	@property
@@ -53,7 +53,7 @@ class Alumno(BaseModel):
 
 class Departamento(models.Model):
 	id = models.IntegerField(primary_key = True)
-	departamento = models.CharField('Departamento escolar', max_length = 255, blank = False, null = False, unique = False)
+	departamento = models.CharField('Departamento escolar', max_length = 75, blank = False, null = False, unique = False)
 	historical = HistoricalRecords()
 
 
@@ -77,8 +77,8 @@ class Profesor(BaseModel):
 	fk_departamento = models.ForeignKey(Departamento, on_delete = models.CASCADE, verbose_name = 'fk_departamento', null = False, blank = False)
 	fk_user = models.IntegerField(default = 0)
 	alta_app = models.BooleanField('Dado de alta en aplicacion', default = False)
-	email = models.EmailField('Correo Electronico', max_length = 255, unique = True)
-	noEmpleado = models.CharField('Numero de noEmpleado', max_length = 255, blank = True, null = True)
+	email = models.EmailField('Correo Electronico', max_length = 50, unique = True)
+	noEmpleado = models.CharField('Numero de noEmpleado', max_length = 50, blank = True, null = True)
 	
 	@property
 	def _history_user(self):

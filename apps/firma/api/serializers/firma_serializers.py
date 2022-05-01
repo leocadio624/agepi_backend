@@ -29,6 +29,8 @@ class FirmaSerializer(serializers.ModelSerializer):
         modified_date = self.convertUTC(instance.modified_date)
         modified_date = '' if created_date == modified_date else modified_date
 
+        
+
 
         time_created = created_date.split(' ')
         vigencia_firma = instance.vigencia_firma.strftime('%m/%d/%Y') +' '+time_created[1]

@@ -6,6 +6,52 @@ from apps.base.models import BaseModel
 
 #blank=False, null=False, unique=True
 
+
+class catInscripccion(BaseModel):
+    id = models.IntegerField(primary_key = True)
+    descp = models.CharField('catalogo inscripccion', max_length = 50, blank = False, null = False)
+    historical = HistoricalRecords()
+
+
+    @property
+    def _history_user(self):
+        return self.change_by
+
+    @_history_user.setter
+    def _history_user(self, vale):
+        self.changed_by = value
+
+    class Meta:
+        verbose_name = 'inscripccion'
+        verbose_name_plural = 'inscripcciones'
+
+    def __str__(self):
+        return self.descp
+
+
+
+class PeriodoEscolar(BaseModel):
+    periodo = models.IntegerField('periodo', blank = False, null = False)
+    anio = models.IntegerField('anio', blank = False, null = False)
+    descp = models.CharField('Descripccion', max_length = 50, blank = False, null = False)
+    historical = HistoricalRecords()
+
+    @property
+    def _history_user(self):
+        return self.change_by
+    
+    @_history_user.setter
+    def _history_user(self, vale):
+        self.changed_by = value
+
+    class Meta:
+        verbose_name = 'Periodo escolar'
+        verbose_name_plural = 'Periodos escolares'
+
+    def __str__(self):
+        return self.descp
+
+
 class ProtocolState(BaseModel):
     protocol_state = models.IntegerField('Estado protocolo', default = True)
     description = models.CharField('Descripccion del estado', max_length = 50, blank = False, null = False, unique = True)

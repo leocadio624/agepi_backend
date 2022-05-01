@@ -15,7 +15,7 @@ python3 manage.py shell
 #
 from apps.comunidad.models import ProgramaAcademico, Departamento
 from apps.notification.models import TipoNotificacion
-from apps.protocol.models import ProtocolState
+from apps.protocol.models import ProtocolState, catInscripccion
 
 programa = ProgramaAcademico(id = 1, programa='ISC')
 programa.save()
@@ -61,6 +61,14 @@ notificacion.save()
 
 estado_protocolo = ProtocolState(protocol_state = 1, description='Registrado')
 estado_protocolo.save()
+
+inscripccion = catInscripccion(id = 1, descp='Normal', state = False)
+inscripccion.save()
+
+inscripccion = catInscripccion(id = 2, descp='Reestructurada', state = False)
+inscripccion.save()
+
+
 exit()
 
 
