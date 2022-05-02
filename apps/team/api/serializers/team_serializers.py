@@ -51,7 +51,6 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
 
     def to_representation(self, instance):
-        #print( instance.fk_user.name )
         return {
             'id':instance.id,
             'fk_team':instance.fk_team.id,

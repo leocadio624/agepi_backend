@@ -2,14 +2,38 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-
-
 from apps.protocol.api.serializers.protocol_serializers import ProtocolSerializer, keyWordSerializer
+from apps.protocol.api.serializers.catalogos_serializers import PeriodoListSerializer, InscripccionSerializer
+from apps.team.api.serializers.team_serializers import TeamMemberSerializer
+
+
+
+
+class ProtocolStartModuleViewSet(viewsets.ModelViewSet):
+    serializer_class = PeriodoListSerializer
+
+    def get_queryset(self, pk = None):
+        return self.get_serializer().Meta.model.objects.filter(state = True)
+
+    def get_InscripcionQuery(self, pk = None):
+        return InscripccionSerializer.Meta.model.objects.filter(state = True)
+        
+    #get
+    def list(self, request):
+        periodo_serializer = self.get_serializer(self.get_queryset(), many = True)
+        inscripccion_serializer = InscripccionSerializer(self.get_InscripcionQuery(), many = True)
+
+        return Response({
+            'periodos':periodo_serializer.data,
+            'inscripcciones':inscripccion_serializer.data
+            }, status = status.HTTP_200_OK)
+
+        #return Response(protocol_serializer.data, status = status.HTTP_200_OK)
+
 
 class ProtocolViewSet(viewsets.ModelViewSet):
 
-    serializer_class = ProtocolSerializer
-    
+    serializer_class = ProtocolSerializer    
     def get_queryset(self, pk = None):
         if pk is None:
             return self.get_serializer().Meta.model.objects.filter(state = True)
@@ -24,7 +48,17 @@ class ProtocolViewSet(viewsets.ModelViewSet):
     #post
     def create(self, request):
         
-        
+        pk_user = request.data['pk_user']
+        miembro_equipo = TeamMemberSerializer.Meta.model.objects.filter(fk_user = pk_user, solicitudEquipo = 2, state= True).first()
+
+
+        if miembro_equipo is None:
+            return Response({'message':'Para registrar un protocolo debes de estar relacionado en un equipo'}, status = status.HTTP_200_OK)
+
+        fk_team = str(miembro_equipo.fk_team.id)
+        request.data['fk_team'] = fk_team
+
+    
         serializer = self.serializer_class(data = request.data)
         nextProtocolo = len(self.get_queryset())
 
@@ -41,8 +75,7 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         request.data['number'] = nextProtocolo
 
 
-        if serializer.is_valid():
-
+        if  serializer.is_valid():
             serializer.save()
             fk_Protocol = serializer.data['id']
 
@@ -50,9 +83,10 @@ class ProtocolViewSet(viewsets.ModelViewSet):
                 key_serializer = keyWordSerializer(data = {'word':word, 'fk_Protocol':fk_Protocol})
                 if key_serializer.is_valid():
                     key_serializer.save()
-            
             return Response(serializer.data, status = status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+
+
         
 
     

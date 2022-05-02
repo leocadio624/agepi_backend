@@ -42,6 +42,20 @@ class PeriodoSerializer(serializers.ModelSerializer):
             'state':instance.state
         }
 
+class PeriodoListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PeriodoEscolar
+        exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
+
+
+    def to_representation(self, instance):
+        periodo = str(instance.anio) + '-' + str(instance.periodo)        
+        
+        return {
+            'id':instance.id,
+            'periodo':periodo
+        }
+
 
 class InscripccionSerializer(serializers.ModelSerializer):
     class Meta:

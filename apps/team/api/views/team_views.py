@@ -74,10 +74,12 @@ class TeamViewSet(viewsets.ModelViewSet):
     
     #delete
     def destroy(self, request, pk = None):
-        protocol = self.get_queryset().filter(id = pk).first()
-        if protocol:
-            protocol.state = False
-            protocol.save()
+        team = self.get_queryset().filter(id = pk).first()
+        if  team:
+            team.state = False
+            team.save()
+            TeamMembers.objects.filter(fk_team = pk,state = True).update(state = False)
+
             return Response({'message':'Se ha eliminado el equipo correctamente'}, status = status.HTTP_200_OK)
         return Response({'message':'No existe un equipo con estos datos'}, status = status.HTTP_400_BAD_REQUEST)
 

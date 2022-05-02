@@ -3,8 +3,7 @@ import datetime
 from django.db import models
 from simple_history.models import HistoricalRecords
 from apps.base.models import BaseModel
-
-#blank=False, null=False, unique=True
+from apps.team.models import Team
 
 
 class catInscripccion(BaseModel):
@@ -83,11 +82,15 @@ def user_directory_path(instance, filename):
 
 class Protocol(BaseModel):
 
-    number = models.CharField('Numero de protocolo', max_length = 10, blank = False, null = False, unique = True)
-    title = models.CharField('Titulo de protocolo', max_length = 150, blank = False, null = False)
-    sumary = models.TextField('Resumen de protocolo', blank = False, null = True)
-    protocol_state = models.ForeignKey(ProtocolState, on_delete = models.CASCADE, verbose_name = 'Estado del prtocolo', null = True, blank = False)
-    fileProtocol = models.FileField('Archivo de protocolo', upload_to = user_directory_path, null = True, blank = True)
+    number            = models.CharField('Numero de protocolo', max_length = 10, blank = False, null = False, unique = True)
+    title             = models.CharField('Titulo de protocolo', max_length = 150, blank = False, null = False)
+    sumary            = models.TextField('Resumen de protocolo', blank = False, null = True)
+    fileProtocol      = models.FileField('Archivo de protocolo', upload_to = user_directory_path, null = True, blank = True)
+    fk_protocol_state = models.ForeignKey(ProtocolState, on_delete = models.CASCADE, verbose_name = 'Estado del prtocolo', null = True, blank = False)
+    fk_periodo        = models.ForeignKey(PeriodoEscolar, on_delete = models.CASCADE, verbose_name = 'Perido de inscripccion', null = True, blank = False)
+    fk_inscripccion   = models.ForeignKey(catInscripccion, on_delete = models.CASCADE, verbose_name = 'Perido de inscripccion', null = True, blank = False)
+    fk_team           = models.ForeignKey(Team, on_delete = models.CASCADE, verbose_name = 'Equipo de protocolo', null = True, blank = False)
+    
     historical = HistoricalRecords()
 
     @property
