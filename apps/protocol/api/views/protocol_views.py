@@ -70,6 +70,13 @@ class ProtocolViewSet(viewsets.ModelViewSet):
             nextProtocolo = 1
         else:
             nextProtocolo = nextProtocolo + 1
+
+        """
+        nextProtocolo = 1 if nextProtocolo == 0 else nextProtocolo + 1
+        """
+
+
+
         
         nextProtocolo = "%02d" % (nextProtocolo,)
         request.data['number'] = nextProtocolo
@@ -79,10 +86,12 @@ class ProtocolViewSet(viewsets.ModelViewSet):
             serializer.save()
             fk_Protocol = serializer.data['id']
 
+            """
             for word in keyWords:
                 key_serializer = keyWordSerializer(data = {'word':word, 'fk_Protocol':fk_Protocol})
                 if key_serializer.is_valid():
                     key_serializer.save()
+            """
             return Response(serializer.data, status = status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 

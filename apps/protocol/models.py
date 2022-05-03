@@ -71,10 +71,14 @@ class ProtocolState(BaseModel):
     def __str__(self):
         return self.description
 
+#periodo = models.IntegerField('periodo', blank = False, null = False)
+#anio = models.IntegerField('anio', blank = False, null = False)
 
 def user_directory_path(instance, filename):
     return os.path.join(
         'protocols',
+        str(instance.fk_periodo.anio),
+        str(instance.fk_periodo.anio)+'-'+str(instance.fk_periodo.periodo),
         instance.number,
         datetime.datetime.now().strftime('%Y_%m_%d__%H_%M'), 
         filename)
