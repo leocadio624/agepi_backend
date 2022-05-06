@@ -51,11 +51,15 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
 
     def to_representation(self, instance):
+
+        #print(instance.fk_team.fk_user.id)
+
         return {
             'id':instance.id,
             'fk_team':instance.fk_team.id,
             'team':instance.fk_team.nombre,
             'fk_user':instance.fk_user.id,
+            'fk_user_creator':instance.fk_team.fk_user.id,
             'name':instance.fk_user.name,
             'email':instance.fk_user.email,
             'professionalSummary':instance.fk_user.professionalSummary,

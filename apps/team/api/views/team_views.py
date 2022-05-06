@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from apps.team.api.serializers.team_serializers import TeamSerializer, TeamSerializerUpd, TeamMemberSerializer, AlumnoTeamSerializer, ProfesorTeamSerializer
 from apps.notification.api.serializers.notificacion_serializers import NotificacionTeamSerializer
+from apps.protocol.api.serializers.protocol_serializers import ProtocolSerializer
 
 from apps.team.models import TeamMembers, Team
 from apps.notification.models import NotificacionTeam
@@ -74,7 +75,14 @@ class TeamViewSet(viewsets.ModelViewSet):
     
     #delete
     def destroy(self, request, pk = None):
+
         team = self.get_queryset().filter(id = pk).first()
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = pk, fk_protocol_state = 1, state = True).first()
+
+        if protocolo:
+            return Response({'message':'No es posible la eliminación, se ha iniciado el registro de un protocolo con este equipo'}, status = status.HTTP_226_IM_USED)
+        
+
         if  team:
             team.state = False
             team.save()
@@ -130,6 +138,28 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
                 'equipos':equipos.data
                 },status = status.HTTP_200_OK)
 
+    
+    """
+    * Descripcion: Elimina relacion de un integrante en modulo 'Equipo'
+    * Fecha de la creacion:     05/05/2022
+    * Author:                   Eduardo B 
+    """
+    def destroy(self, request, pk = None):
+
+        fk_team = request.data['fk_team']
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = fk_team, fk_protocol_state = 1, state = True).first()
+
+        if  protocolo:
+            return Response({'message':'No es posible la eliminación, se ha iniciado el registro de un protocolo con este equipo'}, status = status.HTTP_226_IM_USED)
+
+        integrante = self.get_serializer().Meta.model.objects.filter(id = pk, state = True, solicitudEquipo  = 2).first()
+        if  integrante:
+            integrante.state = False
+            integrante.save()
+            return Response({'message':'Haz salido del equipo correctamente'}, status = status.HTTP_200_OK)
+        return Response({'message':'Ocurrió una interrucción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+
+
 """
 * Descripcion:  Obtiene los integrantes de un equipo por id de equipo
 * Fecha de la creacion:     28/04/2022
@@ -144,9 +174,9 @@ class TeamMembersByTeamViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         fk_team = request.GET["fk_team"]
-        #print(fk_team)
         serializer = self.get_serializer(self.get_queryset(fk_team), many = True)
         return Response(serializer.data, status = status.HTTP_200_OK)
+
 
         """
         return Response(

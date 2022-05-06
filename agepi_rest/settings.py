@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 import os
 
@@ -33,6 +34,10 @@ ALLOWED_HOSTS = []
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
 ]
+SIMPLE_JWT = {
+    #'ACCESS_TOKEN_LIFETIME':timedelta(seconds = 30),
+    'REFRESH_TOKEN_LIFETIME':timedelta(hours = 12)
+}
 
 #TOKEN_EXPIRED_AFTER_SECONDS = 10
 REST_FRAMEWORK = {

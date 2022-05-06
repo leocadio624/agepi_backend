@@ -16,6 +16,9 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+from django.http import HttpResponse
+from wsgiref.util import FileWrapper
+
 import string
 import random
 
@@ -168,3 +171,22 @@ class FirmaPassViewSet(viewsets.ModelViewSet):
         server.login(sender, password)
         server.sendmail(sender, receiver, email_body_content)
         server.quit()
+
+
+class FirmaDownloadViewSet(viewsets.ModelViewSet):
+
+    #post
+    def create(self, request):
+
+        try:
+            path = request.data['ruta_archivo']
+            document = open(path, 'rb')
+            response = HttpResponse(FileWrapper(document))
+            response['Content-Disposition'] = 'attachment'
+            return response
+        except:
+            return Response({'message':'Ocurrió un error en la descarga del archivo'}, status = status.HTTP_400_BAD_REQUEST)
+
+
+
+        

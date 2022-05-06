@@ -43,7 +43,7 @@ notificacion.save()
 notificacion = TipoNotificacion(id = 3, descp='Rechazar/Cancelar equipo')
 notificacion.save()
 
-notificacion = TipoNotificacion(id = 4, descp='Protocolo subido')
+notificacion = TipoNotificacion(id = 4, descp='Solicitud firma')
 notificacion.save()
 
 notificacion = TipoNotificacion(id = 5, descp='Protocolo firmado')
@@ -60,6 +60,12 @@ notificacion.save()
 
 
 estado_protocolo = ProtocolState(protocol_state = 1, description='Registrado')
+estado_protocolo.save()
+
+estado_protocolo = ProtocolState(protocol_state = 2, description='Por firmar')
+estado_protocolo.save()
+
+estado_protocolo = ProtocolState(protocol_state = 3, description='Firmado')
 estado_protocolo.save()
 
 inscripccion = catInscripccion(id = 1, descp='Normal', state = False)
