@@ -55,6 +55,8 @@ class FirmaViewSet(viewsets.ModelViewSet):
         password    = request.data['password']
         vigencia    = int(request.data['vigencia'])
 
+        
+
         firma = self.get_serializer().Meta.model.objects.filter(fk_user = fk_user, state = True).first()
         if firma:
             return Response({'message':'Ya cuentas con una firma electronica'}, status = status.HTTP_226_IM_USED)
@@ -70,16 +72,30 @@ class FirmaViewSet(viewsets.ModelViewSet):
         public = nombre + '.cer'
         private = nombre + '.key'
 
-        ruta            = str(settings.BASE_DIR) + '/firmas/' + str(fk_user)+ '/'
-        path_public     = ruta = str(settings.BASE_DIR) + '/firmas/' + str(fk_user)+ '/' + public
-        path_private    = ruta = str(settings.BASE_DIR) + '/firmas/' + str(fk_user)+ '/' + private
+
+        path_public     = str(settings.BASE_DIR) + '/firmas/' + str(fk_user)+ '/' + public
+        public_pem     = str(settings.BASE_DIR) + '/firmas/' + str(fk_user)+ '/public.pem'
+
+        path_private    = str(settings.BASE_DIR) + '/firmas/' + str(fk_user)+ '/' + private
+        private_pem    = str(settings.BASE_DIR) + '/firmas/' + str(fk_user)+ '/private.pem'
+
+        ruta_firma      = str(settings.BASE_DIR) + '/firmas/' + str(fk_user)+ '/'
 
 
+        
+
+        
         cadena = 'openssl req -x509 -inform der -sha1 -days '+delta+' -newkey rsa:2048 -passout pass:'+password+''
         cadena += ' -subj "/C=MX/ST=CIUDAD DE MEXICO/L=GAM/O=AGEPI/OU=IT Department AGEPI/CN=AUTORIDAD NO CERTIFICADORA"'
         cadena += ' -inform der -keyout '+path_private+' -out '+path_public+''
-        os.system(cadena)
 
+        
+        os.system(cadena)        
+
+        os.system('openssl x509 -in '+path_public+' -out '+public_pem)
+        os.system('openssl pkcs8 -in '+path_private+' -out '+private_pem+' -passin pass:'+password+'')
+
+        
     
         try:
             f = open(path_public, "r")
@@ -98,9 +114,9 @@ class FirmaViewSet(viewsets.ModelViewSet):
                                             'password_firma'    :password,
                                             'ruta_public_key'   :path_public,
                                             'ruta_private_key'  :path_private,
+                                            'ruta_firma'        :ruta_firma,
                                             'vigencia_firma'    :date2})
         if  serializer.is_valid():
-            #print( serializer.is_valid() )
             serializer.save()
             return Response({'message':'Se ha generado tu firma electronica correctamente'}, status = status.HTTP_200_OK)
         return Response({'message':'Ocurrio un error en la generacion de tú firma electronica'}, status = status.HTTP_400_BAD_REQUEST)

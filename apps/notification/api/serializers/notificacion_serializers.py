@@ -6,6 +6,7 @@ from apps.notification.models import NotificacionTeam
 from apps.users.models import User
 from apps.team.models import TeamMembers
 from apps.protocol.models import Protocol
+from apps.firma.models import FirmaProtocolo
 
 
 
@@ -88,8 +89,8 @@ class SolicitudFirmaSerializer(serializers.ModelSerializer):
 		fk_team = instance.fk_userDestino.fk_team
 		protocol = Protocol.objects.filter(fk_team = fk_team, state = True).first()
 
-		
-		#'fileProtocol': protocol.fileProtocol.url if protocol.fileProtocol != '' else '',
+		numeroFirmas = len( FirmaProtocolo.objects.filter(fk_protocol = protocol.id, state = True) )
+		print(numeroFirmas)
 
 		
 		created_date = self.convertUTC(instance.created_date)
@@ -100,11 +101,13 @@ class SolicitudFirmaSerializer(serializers.ModelSerializer):
 		'fk_user_destino':fk_destino.id,	
 		'fk_tipoNotificacion':instance.fk_tipoNotificacion.id,
 		'notificacion':instance.fk_tipoNotificacion.descp,
+		'pk_protocol':protocol.id,
 		'path_protocol':protocol.fileProtocol.url if protocol.fileProtocol != '' else '',
 		'numero':protocol.number,
 		'titulo':protocol.title,
 		'periodo':str(protocol.fk_periodo.anio)+'-'+str(protocol.fk_periodo.periodo),
 		'fecha':created_date,
+		'numeroFirmas':numeroFirmas,
 		'state':instance.state
 		}
 

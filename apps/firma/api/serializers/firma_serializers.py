@@ -2,7 +2,7 @@ import pytz
 from django.utils import timezone
 
 from rest_framework import serializers
-from apps.firma.models import Firma
+from apps.firma.models import Firma, FirmaProtocolo
 from datetime import datetime, timedelta, date
 #from dateutil.relativedelta import relativedelta
 
@@ -44,5 +44,21 @@ class FirmaSerializer(serializers.ModelSerializer):
             'created_date':created_date,
             'vigencia_firma':vigencia_firma,
             'cancel_date':modified_date,
+            'state':instance.state
+        }
+
+
+class FirmaProtocoloSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FirmaProtocolo
+        exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
+
+    def to_representation(self, instance):
+        
+        return {
+            'id':instance.id,
+            'fk_protocol':instance.fk_protocol.id,
+            'fk_user':instance.fk_user.id,
+            'firma':instance.firma,
             'state':instance.state
         }

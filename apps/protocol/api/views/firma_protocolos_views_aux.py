@@ -4,7 +4,6 @@ from rest_framework.response import Response
 
 from apps.team.api.serializers.team_serializers import TeamMemberSerializer
 from apps.notification.api.serializers.notificacion_serializers import NotificacionTeamSerializer, SolicitudFirmaSerializer
-from apps.firma.api.serializers.firma_serializers import FirmaProtocoloSerializer
 
 from apps.protocol.api.serializers.protocol_serializers import ProtocolSerializer
 from apps.protocol.models import ProtocolState
@@ -55,74 +54,76 @@ class SolicitudesFirmaViewSet(viewsets.ModelViewSet):
 
 
 class existeFirmaViewSet(viewsets.ModelViewSet):
-    serializer_class = FirmaProtocoloSerializer
-
     def create(self, request):
-
         pk_user = request.data['pk_user']
-        pk_protocol  = request.data['pk_protocol']
-
-
-        firmas_protocolo = FirmaProtocoloSerializer.Meta.model.objects.filter(fk_protocol = pk_protocol, fk_user = pk_user, state = True).first()
-        if  firmas_protocolo:
-            return Response({'message':'Ya haz firmado este protocolo'}, status = status.HTTP_226_IM_USED)
-
         firmas = Firma.objects.filter(fk_user = pk_user, state = True).first()
-
         if  firmas is None:
             return Response({'message':'sin firma registrada'}, status = status.HTTP_206_PARTIAL_CONTENT)
         return Response({'message':'continua'}, status = status.HTTP_200_OK)
 
-
 class firmaDocumentoViewSet(viewsets.ModelViewSet):
-    serializer_class = FirmaProtocoloSerializer
-
-    def get_queryset(self, pk = None):
-        return self.get_serializer().Meta.model.objects.filter(state = True)
-
-    #get
-    def list(self, request):
-        serializer = self.get_serializer(self.get_queryset(), many = True)
-        return Response(serializer.data, status = status.HTTP_200_OK)
-
     def create(self, request):
-        
-        pk_user         = request.data['pk_user']
-        pk_protocol     = request.data['pk_protocol']
-        fileProtocol    = request.data['fileProtocol']
-        private         = request.FILES.get("private_key")
-        password        = request.data['password']
 
+        
+        pk_user = request.data['pk_user']
+        fileProtocol = request.data['fileProtocol']
+        public = request.FILES.get("public_key")
+        private = request.FILES.get("private_key")
+        password = request.data['password']
+
+        
         firma = Firma.objects.filter(fk_user = pk_user, state = True).first()
         if  firma is None:
-            return Response({'message':'Ocurrió una interrupcción en la comprobación de tu firma electronica, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({'message':'Ocurrió una interrupcción en la busqueda de tu firma electronica, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
 
-        ruta_firma      = firma.ruta_firma
-        base            = Path(__file__).resolve().parent.parent.parent.parent.parent
-        pathFile        = str(base) + str(fileProtocol)
-        dir_protocol    = os.path.dirname(pathFile) +'/'+str(pk_user)+'/'
+        ruta_firma = firma.ruta_firma
+        
+        """
+        archivo = open(firma.ruta_public_key, 'rb').read()
+        cer_store_hash = SHA256.new(archivo)
+
+        archivo = open(firma.ruta_private_key, 'rb').read()
+        priv_store_hash = SHA256.new(archivo)
+
+        """
+
+        base         = Path(__file__).resolve().parent.parent.parent.parent.parent
+        pathFile     = str(base) + str(fileProtocol)
+        dir_protocol     = os.path.dirname(pathFile) +'/'+str(pk_user)+'/'
 
         
         os.system('rm '+dir_protocol+'*')
         fss         = FileSystemStorage(location = dir_protocol)
+        certificado = fss.save(public.name, public)
         llave       = fss.save(private.name, private)
 
 
-        in_key  = dir_protocol + private.name + ''
+        in_certificado = dir_protocol + public.name + ''
+        out_certificado = dir_protocol + 'public.pem'
+
+        in_key = dir_protocol + private.name + ''
         out_key = dir_protocol + 'private.pem'
 
+        try:
+            os.system('openssl x509 -in '+ in_certificado +' -out '+out_certificado+'')
+            f = open(out_certificado, "r")
+            f.close()
+        except:
+            return Response({'message':'Ocurrió una interrupcción al cargar tu certificado, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
 
-        os.system('openssl pkcs8 -in '+in_key+' -out '+out_key+' -passin pass:'+password+'')
-        f = open(out_key, "r")
-        f.close()
+        try:
+            os.system('openssl pkcs8 -in '+in_key+' -out '+out_key+' -passin pass:'+password+'')
+            f = open(out_key, "r")
+            f.close()
+        except:
+            return Response({'message':'Contraseña de firma electrónica incorrecta'}, status = status.HTTP_400_BAD_REQUEST)
+
+
+
 
         
-        try:
-            f = open(out_key, 'r')
-            keyPair = RSA.import_key(f.read())
-        except:
-            return Response({'message':'Contraseña de firma electrónica incorrecta, favor de verificarlo'}, status = status.HTTP_400_BAD_REQUEST)
-
+        f = open(out_key, 'r')
+        keyPair = RSA.import_key(f.read())
         archivo = open(pathFile, 'rb').read()
         f.close()
         hash = SHA256.new(archivo)
@@ -130,37 +131,104 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
         signer = PKCS115_SigScheme(keyPair)
         signature = signer.sign(hash)
 
-        firma = base64.b64encode(signature)
-        firma = firma.decode('UTF-8')
+        
+        
+        
+        
 
-        #signature2 = signature.encode()
-        #signature2 = base64.b64decode(signature2)
+
+        
+        #f = open(out_certificado, 'r')
         
         f = open(ruta_firma+'public.pem', 'r')
         pubKey = RSA.import_key(f.read())
         f.close()
+
+        
+        archivo = open(pathFile, 'rb').read()
+        hash2 = SHA256.new(archivo)
+
         verifier = PKCS115_SigScheme(pubKey)
 
+        try:
+            verifier.verify(hash2, signature)
+            print('la firma es valida')
+        except:
+            print('la firma no es valida')
+        
+        
+
+        
+
+        
+
+
+        """
+        signature = base64.b64encode(signature)
+        signature = signature.decode('utf-8')
+        
+        print( len(signature) ) 
+
+        """
+
+        
+        
+        """
+        try:
+            os.system('openssl x509 -in '+ in_certificado +' -out '+out_certificado+'')
+            f = open(out_certificado, "r")
+        except:
+            return Response({'message':'Ocurrió una interrupcción al cargar tu certificado, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
 
         try:
-
-            verifier.verify(hash, signature)
-            serializer = self.serializer_class(data = {
-                        'fk_protocol':pk_protocol,
-                        'fk_user':pk_user,
-                        'firma':firma
-                        })
-
-            if  serializer.is_valid():
-                serializer.save()
-                return Response({'message':'Se ha firmado el protocolo correctamente'}, status = status.HTTP_200_OK)
-            return Response({'message':'Ocurrio una interrupcción, favor de intentarlo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)    
-
+            os.system('openssl pkcs8 -in '+in_key+' -out '+out_key+' -passin pass:'+password+'')
+            f = open(out_key, "r")
         except:
-            return Response({'message':'La clave privada proporcionada no te pertenece'}, status = status.HTTP_400_BAD_REQUEST)
-            
+            return Response({'message':'Contraseña de firma electrónica incorrecta'}, status = status.HTTP_400_BAD_REQUEST)
+        """
+
+        """
+        archivo = open(in_certificado, 'rb').read()
+        cer_new_hash = SHA256.new(archivo)
+
+        archivo = open(in_key, 'rb').read()
+        priv_new_hash = SHA256.new(archivo)
+        """
+        
+
+        
+
+        
+        #os.system(cadena)
+
+        #in_key = base + key.name + ''
+        #print(in_certificado)
+
+        #f = open(in_certificado, "r")
+        #print(f.read()) 
+
+        #llave_publica = os.path.splitext(in_certificado)[0] +'.pem'
+        #llave_publica = os.path.splitext(in_certificado)[0] +'.pem'
+        #print(llave_publica)
+
+
+
+
+
+        """
+        fss         = FileSystemStorage(location = dir_protocol)
+        certificado = fss.save(public.name, public)
+        llave       = fss.save(private.name, private)
+        """
+
+
         
         
+
+         
+
+        
+        return Response({'message':'continua'}, status = status.HTTP_200_OK)
         
 
 class FirmaProtocolosViewSet(viewsets.ModelViewSet):
