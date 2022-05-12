@@ -90,8 +90,6 @@ class SolicitudFirmaSerializer(serializers.ModelSerializer):
 		protocol = Protocol.objects.filter(fk_team = fk_team, state = True).first()
 
 		numeroFirmas = len( FirmaProtocolo.objects.filter(fk_protocol = protocol.id, state = True) )
-		print(numeroFirmas)
-
 		
 		created_date = self.convertUTC(instance.created_date)
 		return {

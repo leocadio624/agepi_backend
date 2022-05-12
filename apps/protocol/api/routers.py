@@ -1,7 +1,8 @@
 from rest_framework.routers import DefaultRouter
 from apps.protocol.api.views.protocol_views import ProtocolViewSet, keyWordViewSet, wordListViewSet, ProtocolStartModuleViewSet, ProtocolByTeamViewSet
 from apps.protocol.api.views.catalogos_views import PeriodoViewSet, InscripccionViewSet
-from apps.protocol.api.views.firma_protocolos_views import FirmaProtocolosViewSet, SolicitudesFirmaViewSet, existeFirmaViewSet, firmaDocumentoViewSet
+from apps.protocol.api.views.firma_protocolos_views import (FirmaProtocolosViewSet, SolicitudesFirmaViewSet, existeFirmaViewSet, firmaDocumentoViewSet, 
+		crearDocumentoFirmasViewSet, firmasQRViewSet)
 
 
 router = DefaultRouter()
@@ -16,6 +17,8 @@ router.register(r'solicta_firma', FirmaProtocolosViewSet, basename = 'solicta_fi
 router.register(r'solicitudes_firma', SolicitudesFirmaViewSet, basename = 'solicitudes_firma')
 router.register(r'existeFirma', existeFirmaViewSet, basename = 'existeFirma')
 router.register(r'firmaDocumento', firmaDocumentoViewSet, basename = 'firmaDocumento')
+router.register(r'crearDocumentoFirmas', crearDocumentoFirmasViewSet, basename = 'crearDocumentoFirmas')
+router.register(r'firmasQR', firmasQRViewSet, basename = 'firmasQR')
 
 
 urlpatterns = router.urls

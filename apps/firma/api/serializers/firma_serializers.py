@@ -3,8 +3,11 @@ from django.utils import timezone
 
 from rest_framework import serializers
 from apps.firma.models import Firma, FirmaProtocolo
+from apps.comunidad.models import Alumno
+
+
 from datetime import datetime, timedelta, date
-#from dateutil.relativedelta import relativedelta
+
 
 
 class FirmaSerializer(serializers.ModelSerializer):
@@ -60,5 +63,65 @@ class FirmaProtocoloSerializer(serializers.ModelSerializer):
             'fk_protocol':instance.fk_protocol.id,
             'fk_user':instance.fk_user.id,
             'firma':instance.firma,
+            'state':instance.state
+        }
+
+class FirmaPDFSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FirmaProtocolo
+        exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
+
+    def to_representation(self, instance):
+
+        if instance.fk_user.rol_user == 1:
+            alumno = Alumno.objects.filter(fk_user = instance.fk_user.id, state = True).first()
+            boleta = alumno.boleta
+        else:
+            boleta = ''
+            
+        return {
+            'id':instance.id,
+            'fk_protocol':instance.fk_protocol.id,
+            'fk_user':instance.fk_user.id,
+            'name':instance.fk_user.name,
+            'last_name':instance.fk_user.last_name,
+            'email':instance.fk_user.email,
+            #'rol':instance.fk_user.rol_user,
+            'boleta':boleta,
+            'phone':instance.fk_user.phone,
+            'summary':instance.fk_user.professionalSummary,
+            'firma':instance.firma,
+            'rol':instance.fk_user.rol_user,
+            'state':instance.state
+        }
+
+class FirmaQrSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FirmaProtocolo
+        exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
+
+    def to_representation(self, instance):
+
+        """
+        if instance.fk_user.rol_user == 1:
+            alumno = Alumno.objects.filter(fk_user = instance.fk_user.id, state = True).first()
+            boleta = alumno.boleta
+        else:
+            boleta = ''
+
+        """
+        firma = Firma.objects.filter(fk_user = instance.fk_user.id, state = True).first()
+        ruta_firma = firma.ruta_firma
+
+        #ruta_firma
+            
+        return {
+            'id':instance.id,
+            'fk_protocol':instance.fk_protocol.id,
+            'fk_user':instance.fk_user.id,
+            'name':instance.fk_user.name,
+            'last_name':instance.fk_user.last_name,
+            'firma':instance.firma,
+            'ruta_firma':ruta_firma,
             'state':instance.state
         }

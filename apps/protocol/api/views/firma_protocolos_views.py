@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from apps.team.api.serializers.team_serializers import TeamMemberSerializer
 from apps.notification.api.serializers.notificacion_serializers import NotificacionTeamSerializer, SolicitudFirmaSerializer
-from apps.firma.api.serializers.firma_serializers import FirmaProtocoloSerializer
+from apps.firma.api.serializers.firma_serializers import FirmaProtocoloSerializer, FirmaPDFSerializer, FirmaQrSerializer
 
 from apps.protocol.api.serializers.protocol_serializers import ProtocolSerializer
 from apps.protocol.models import ProtocolState
@@ -30,8 +30,12 @@ from Crypto.Signature.pkcs1_15 import PKCS115_SigScheme
 from Crypto.Hash import SHA256
 import binascii
 import base64
-"""
-"""
+
+#generar pdf de firmas
+import pdfkit
+import qrcode
+from PyPDF2 import PdfFileMerger
+
 
 
 
@@ -62,10 +66,11 @@ class existeFirmaViewSet(viewsets.ModelViewSet):
         pk_user = request.data['pk_user']
         pk_protocol  = request.data['pk_protocol']
 
-
+    
         firmas_protocolo = FirmaProtocoloSerializer.Meta.model.objects.filter(fk_protocol = pk_protocol, fk_user = pk_user, state = True).first()
         if  firmas_protocolo:
             return Response({'message':'Ya haz firmado este protocolo'}, status = status.HTTP_226_IM_USED)
+        
 
         firmas = Firma.objects.filter(fk_user = pk_user, state = True).first()
 
@@ -159,9 +164,189 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
         except:
             return Response({'message':'La clave privada proporcionada no te pertenece'}, status = status.HTTP_400_BAD_REQUEST)
             
+
+class crearDocumentoFirmasViewSet(viewsets.ModelViewSet):
+    serializer_class = FirmaPDFSerializer
+    def get_queryset(self, pk = None):
+        return self.get_serializer().Meta.model.objects.filter(fk_protocol = pk, state = True)
+
+
+    def get_image_file_as_base64_data(self, ruta):
+        with open(ruta, 'rb') as image_file:
+            salida = base64.b64encode(image_file.read())
+            salida = salida.decode('UTF-8')
+            return salida
+    """
+    pk = pk_protocol.encode('UTF-8')
+    pk = base64.b64decode(pk)
+    pk = pk.decode('UTF-8')
+    MTY=
+    """
+    def create(self, request):
+
+        
+        fileProtocol    = request.data['fileProtocol']
+        pk_protocol     = request.data['pk_protocol']
+        serializer = self.get_serializer(self.get_queryset(pk_protocol), many = True)
+
+        argument_url = bytes(str(pk_protocol), 'utf-8')
+        argument_url = base64.b64encode(argument_url)
+        argument_url = argument_url.decode('UTF-8')
+
+        
+
+        base            = Path(__file__).resolve().parent.parent.parent.parent.parent
+        pathFile        = str(base) + str(fileProtocol)
+        pathQr              = os.path.dirname(os.path.realpath(pathFile)) + '/qrcode.png'
+
+
+        input_data = 'http://localhost:3000/validar_firmas_priv_qr/'+argument_url
+        qr = qrcode.QRCode(
+                version=1,
+                box_size=10,
+                border=0)
+
+        qr.add_data(input_data)
+        qr.make(fit=True)
+        img = qr.make_image(fill='black', back_color='white')
+        img.save(pathQr)
+
+
+        dir_pdf         = os.path.dirname(os.path.realpath(pathFile)) + '/firmas.pdf'
+        salida_pdf         = os.path.dirname(os.path.realpath(pathFile)) + '/salida.pdf'
+        index           = os.path.dirname(os.path.realpath(pathFile)) + '/index.html'
+        
+        aviso_priv = str(base) + '/aviso_priv.png'
+        data_aviso = self.get_image_file_as_base64_data(aviso_priv)
+        data_qr    = self.get_image_file_as_base64_data(pathQr)
         
         
+        htmlstr = '<!doctype html>'
+        htmlstr +='<html lang="en">'
+        htmlstr +='<head>'
+        htmlstr +='<meta charset="utf-8">'
+        htmlstr +='<meta name="viewport" content="width=device-width, initial-scale=1">'
+        htmlstr +='<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">'
+        htmlstr +='</head>'
+        htmlstr +='<body>'
+
+        htmlstr +='<div style = "margin:30px;" >'
+        for i in serializer.data:
+
+            
+            htmlstr +='<div style = "font-size:11px; margin-top:20px;">'+i['name']+'</div>'
+            htmlstr +='<div style = "font-size:11px;" >'+i['last_name']+'</div>'
+            htmlstr +='<div style = "font-size:11px;" >tel. '+i['phone']+'</div>'
+            htmlstr +='<div style = "font-size:11px;" >'+i['email']+'</td>'
+            htmlstr +='<div style = "font-size:11px;" >Boleta '+i['boleta']+'</td>'
+            
+
+            htmlstr +='<div style = "font-size:11px; width:40%; font-style:italic; text-justify; text-justify:inter-word;">'+i['summary']+'</div>'
+            htmlstr +='<div style = "font-size:10px; margin-top:5px;"><strong>Sello digital</strong></div>'
+            htmlstr +='<div class = "text-justify" style = "font-size:10px; word-wrap:break-word;">'+i['firma']+'</div>'
+
+            htmlstr +='</div>'
+
+        htmlstr +='<div class = "row" style = "margin-top:20px;">'
+        htmlstr +=  '<div class = "col-6 d-flex justify-content-start">'
+        htmlstr +=      '<img height = "100" width = "100" src="data:image/png;base64,'+data_qr+'" alt = "Aviso de privacidad" >'
+        htmlstr +=  '</div>'
+
+        htmlstr +=  '<div class = "col-6 d-flex justify-content-end">'
+        htmlstr +=      '<img height = "85" width = "400" src="data:image/png;base64,'+data_aviso+'" alt = "Aviso de privacidad" >'
+        htmlstr +=  '</div>'
+
+
+        htmlstr +='</div>'
+        htmlstr +='<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>'
+        htmlstr +='</body'
+        htmlstr +='</html>'
+        pdfkit.from_string(htmlstr, dir_pdf)
+
         
+        pdfs = []
+
+        pdfs.append(pathFile)
+        pdfs.append(dir_pdf)
+
+        fusionador = PdfFileMerger()
+
+        for pdf in pdfs:
+            fusionador.append(open(pdf, 'rb'))
+
+        with open(salida_pdf, 'wb') as salida:
+            fusionador.write(salida)
+
+
+        document = open(salida_pdf, 'rb')
+        response = HttpResponse(FileWrapper(document), content_type='application/msword')
+        response['Content-Disposition'] = 'attachment'
+        return response
+
+        """
+        return Response({'message':'mensaje generico'}, status = status.HTTP_200_OK)
+        """
+        
+
+class firmasQRViewSet(viewsets.ModelViewSet):
+    serializer_class = FirmaQrSerializer
+    def get_queryset(self, pk = None):
+        return self.get_serializer().Meta.model.objects.filter(fk_protocol = pk, state = True)
+
+
+    def create(self, request):
+
+        pk_protocol = request.data['pk_protocol']
+        pk = pk_protocol.encode('UTF-8')
+        pk = base64.b64decode(pk)
+        pk = pk.decode('UTF-8')
+        serializer = self.get_serializer(self.get_queryset(pk), many = True)
+
+        """
+
+        #signature2 = signature.encode()
+        #signature2 = base64.b64decode(signature2)
+
+        for i in serializer.data:
+
+            print(signature)
+        """
+
+        for i in serializer.data:
+
+            if i['id'] == 2:break
+            
+            print(i)
+
+            """
+            signature = i['firma']
+            signature = signature.encode('UTF-8')
+            signature = base64.b64decode(signature)            
+
+            
+            
+
+            ruta_firma = i['ruta_firma'] + 'public.pem'
+            f = open(ruta_firma, 'r')
+            pubKey = RSA.import_key(f.read())
+            f.close()
+            verifier = PKCS115_SigScheme(pubKey)
+
+            try:
+                verifier.verify(signature, signature)
+                print('firma valida')
+
+            except:
+                print('firma no valida')
+            """
+
+
+
+        
+            
+
+
+        return Response({'message':'mensaje generico'}, status = status.HTTP_200_OK)
 
 class FirmaProtocolosViewSet(viewsets.ModelViewSet):
     serializer_class = TeamMemberSerializer
