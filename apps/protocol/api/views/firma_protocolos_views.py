@@ -300,31 +300,25 @@ class firmasQRViewSet(viewsets.ModelViewSet):
         pk = pk_protocol.encode('UTF-8')
         pk = base64.b64decode(pk)
         pk = pk.decode('UTF-8')
+
+        
+        base         = Path(__file__).resolve().parent.parent.parent.parent.parent
+        protocolo    = ProtocolSerializer(ProtocolSerializer.Meta.model.objects.filter(id = pk, state = True).first(), many = False)
+        fileProtocol = protocolo.data['fileProtocol']
+
+        pathFile    = str(base) + str(fileProtocol)
+        archivo     = open(pathFile, 'rb').read()
+        hash        = SHA256.new(archivo)
+
+
+
         serializer = self.get_serializer(self.get_queryset(pk), many = True)
-
-        """
-
-        #signature2 = signature.encode()
-        #signature2 = base64.b64decode(signature2)
-
         for i in serializer.data:
 
-            print(signature)
-        """
-
-        for i in serializer.data:
-
-            if i['id'] == 2:break
-            
-            print(i)
-
-            """
             signature = i['firma']
             signature = signature.encode('UTF-8')
             signature = base64.b64decode(signature)            
 
-            
-            
 
             ruta_firma = i['ruta_firma'] + 'public.pem'
             f = open(ruta_firma, 'r')
@@ -333,20 +327,54 @@ class firmasQRViewSet(viewsets.ModelViewSet):
             verifier = PKCS115_SigScheme(pubKey)
 
             try:
-                verifier.verify(signature, signature)
-                print('firma valida')
+                verifier.verify(hash, signature)
+                i['is_valid'] = 1
 
             except:
-                print('firma no valida')
-            """
+                i['is_valid'] = 0
+
+        return Response(serializer.data, status = status.HTTP_200_OK)
+
 
 
 
         
-            
 
+
+"""
+* Descripcion: Verifica una firma dado el sello digital
+* Fecha de la creacion:     12/05/2022
+* Author:                   Eduardo B 
+"""
+class verificaFirmaViewSet(viewsets.ModelViewSet):
+    serializer_class = ProtocolSerializer
+    
+
+    """    
+    def get_queryset(self, pk = None):
+        return self.get_serializer().Meta.model.objects.filter(number = pk, state = True).first()
+
+    def create(self, request):
+        numero  = request.data['numero']
+        firma   = request.data['firma']
+
+        protocolo    =  self.get_queryset(numero)
+
+        protocolos_serializer    = self.get_serializer(self.get_queryset(numero), many = False)
+
+        if  protocolo is None:
+            return Response({'message':'No se encontró el protocolo, favor de varificarlo'}, status = status.HTTP_400_BAD_REQUEST)
+
+
+        pk_protocol = protocolo.id
+        firmas = FirmaProtocoloSerializer.Meta.model.objects.filter(fk_protocol = pk_protocol, state = True)
+
+        for i in firmas:
+            print(i.firma)
 
         return Response({'message':'mensaje generico'}, status = status.HTTP_200_OK)
+    """
+
 
 class FirmaProtocolosViewSet(viewsets.ModelViewSet):
     serializer_class = TeamMemberSerializer

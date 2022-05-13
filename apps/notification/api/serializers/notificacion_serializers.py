@@ -89,23 +89,32 @@ class SolicitudFirmaSerializer(serializers.ModelSerializer):
 		fk_team = instance.fk_userDestino.fk_team
 		protocol = Protocol.objects.filter(fk_team = fk_team, state = True).first()
 
-		numeroFirmas = len( FirmaProtocolo.objects.filter(fk_protocol = protocol.id, state = True) )
-		
+		#numeroFirmas = len( FirmaProtocolo.objects.filter(fk_protocol = protocol.id, state = True) )
 		created_date = self.convertUTC(instance.created_date)
+
+		firmantes = FirmaProtocolo.objects.filter(fk_protocol = protocol.id, state = True)
+		arr_firmantes = []
+		for i in firmantes:
+			objeto = {'nombre':i.fk_user.name+' '+i.fk_user.last_name, 'fecha_firma':self.convertUTC(i.created_date)}
+			arr_firmantes.append(objeto)
+
+
 		return {
 		'id':instance.id,
 		'user_origen': str(usuario_origen.name) +' '+str(usuario_origen.last_name),
-		'fk_user_origen':fk_origen,
-		'fk_user_destino':fk_destino.id,	
-		'fk_tipoNotificacion':instance.fk_tipoNotificacion.id,
-		'notificacion':instance.fk_tipoNotificacion.descp,
+		#'fk_user_origen':fk_origen,
+		#'fk_user_destino':fk_destino.id,	
+		#'fk_tipoNotificacion':instance.fk_tipoNotificacion.id,
+		#'notificacion':instance.fk_tipoNotificacion.descp,
 		'pk_protocol':protocol.id,
 		'path_protocol':protocol.fileProtocol.url if protocol.fileProtocol != '' else '',
 		'numero':protocol.number,
 		'titulo':protocol.title,
+		'summary':protocol.sumary,
 		'periodo':str(protocol.fk_periodo.anio)+'-'+str(protocol.fk_periodo.periodo),
 		'fecha':created_date,
-		'numeroFirmas':numeroFirmas,
+		'numeroFirmas':len(arr_firmantes),
+		'firmantes':arr_firmantes,
 		'state':instance.state
 		}
 

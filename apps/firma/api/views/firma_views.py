@@ -8,6 +8,10 @@ from apps.firma.models import Firma
 from apps.comunidad.models import Alumno, Profesor
 
 from apps.firma.api.serializers.firma_serializers import FirmaSerializer
+from apps.team.api.serializers.team_serializers import TeamMemberSerializer
+from apps.protocol.api.serializers.protocol_serializers import ProtocolSerializer
+
+
 from django.utils import timezone
 from datetime import date
 
@@ -205,4 +209,22 @@ class FirmaDownloadViewSet(viewsets.ModelViewSet):
 
 
 
-        
+"""
+* Descripcion: Carga catalogo al iniciar modulo
+* verifica firmas
+* Fecha de la creacion:     12/05/2022
+* Author:                   Eduardo B 
+"""
+class verificaFirmaStartViewSet(viewsets.ModelViewSet):
+    serializer_class = TeamMemberSerializer
+    def get_queryset(self, pk = None):
+
+        equipos = self.get_serializer().Meta.model.objects.filter(fk_user = pk, solicitudEquipo = 2, state = True).values('fk_team')
+        protocolos = ProtocolSerializer.Meta.model.objects.filter(fk_team__in = equipos, state = True)
+        return protocolos
+
+    #get
+    def list(self, request):
+        pk_user = request.GET["pk_user"]
+        protocolos = ProtocolSerializer(self.get_queryset(pk_user), many = True)
+        return Response(protocolos.data, status = status.HTTP_200_OK)

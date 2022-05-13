@@ -4,7 +4,6 @@ from apps.protocol.api.views.catalogos_views import PeriodoViewSet, Inscripccion
 from apps.protocol.api.views.firma_protocolos_views import (FirmaProtocolosViewSet, SolicitudesFirmaViewSet, existeFirmaViewSet, firmaDocumentoViewSet, 
 		crearDocumentoFirmasViewSet, firmasQRViewSet)
 
-
 router = DefaultRouter()
 router.register(r'protocolos', ProtocolViewSet, basename = 'protocolos')
 router.register(r'palabras_clave', keyWordViewSet, basename = 'palabras_clave')
@@ -19,6 +18,6 @@ router.register(r'existeFirma', existeFirmaViewSet, basename = 'existeFirma')
 router.register(r'firmaDocumento', firmaDocumentoViewSet, basename = 'firmaDocumento')
 router.register(r'crearDocumentoFirmas', crearDocumentoFirmasViewSet, basename = 'crearDocumentoFirmas')
 router.register(r'firmasQR', firmasQRViewSet, basename = 'firmasQR')
-
-
+#router.register(r'verificaFirmaStart', verificaFirmaStartViewSet, basename = 'verificaFirmaStart')
+#router.register(r'verificaFirma', verificaFirmaViewSet, basename = 'verificaFirma')
 urlpatterns = router.urls

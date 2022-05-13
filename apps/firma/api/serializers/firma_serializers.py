@@ -100,28 +100,28 @@ class FirmaQrSerializer(serializers.ModelSerializer):
         model = FirmaProtocolo
         exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
 
+    def convertUTC(self, date):
+        fmt = '%d/%m/%Y %H:%M'
+        utc = date.replace(tzinfo=pytz.UTC)
+        localtz = utc.astimezone(timezone.get_current_timezone())
+        return localtz.strftime('%m/%d/%Y %H:%M:%S')
+
     def to_representation(self, instance):
 
-        """
-        if instance.fk_user.rol_user == 1:
-            alumno = Alumno.objects.filter(fk_user = instance.fk_user.id, state = True).first()
-            boleta = alumno.boleta
-        else:
-            boleta = ''
-
-        """
         firma = Firma.objects.filter(fk_user = instance.fk_user.id, state = True).first()
         ruta_firma = firma.ruta_firma
-
-        #ruta_firma
+        created_date = self.convertUTC(instance.created_date)
             
         return {
             'id':instance.id,
             'fk_protocol':instance.fk_protocol.id,
+            'title':instance.fk_protocol.title,
+            'fileProtocol':instance.fk_protocol.fileProtocol.url,
             'fk_user':instance.fk_user.id,
             'name':instance.fk_user.name,
             'last_name':instance.fk_user.last_name,
             'firma':instance.firma,
             'ruta_firma':ruta_firma,
-            'state':instance.state
+            'is_valid':0,
+            'fecha_firma':created_date
         }
