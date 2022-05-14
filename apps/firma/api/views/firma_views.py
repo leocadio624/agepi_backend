@@ -20,6 +20,14 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+from pathlib import Path
+
+#firma electronica
+from Crypto.PublicKey import RSA
+from Crypto.Signature.pkcs1_15 import PKCS115_SigScheme
+from Crypto.Hash import SHA256
+import base64
+
 from django.http import HttpResponse
 from wsgiref.util import FileWrapper
 
@@ -228,3 +236,84 @@ class verificaFirmaStartViewSet(viewsets.ModelViewSet):
         pk_user = request.GET["pk_user"]
         protocolos = ProtocolSerializer(self.get_queryset(pk_user), many = True)
         return Response(protocolos.data, status = status.HTTP_200_OK)
+
+
+"""
+* Descripcion: Dado un pk de protocolo, devuelve
+* los integrantes del protocolo
+* verifica firmas
+* Fecha de la creacion:     14/05/2022
+* Author:                   Eduardo B 
+"""
+class getIntegrantesProtocoloViewSet(viewsets.ModelViewSet):
+    serializer_class = TeamMemberSerializer
+    def get_queryset(self, pk = None):
+        return self.get_serializer().Meta.model.objects.filter(fk_team = pk, solicitudEquipo = 2, state = True)
+
+    #get
+    def list(self, request):
+        pk_protocol = request.GET["pk_protocol"]
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(id = pk_protocol, state = True).first()
+        if  protocolo is None:
+            return Response({'message':'Ocurrió una interrupcción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+
+        fk_team = protocolo.fk_team.id
+        integrantes = self.serializer_class(self.get_queryset(fk_team), many = True)
+
+        return Response(integrantes.data, status = status.HTTP_200_OK)
+
+
+"""
+* Descripcion: Verifica una firma dado el sello digital
+* Fecha de la creacion:     12/05/2022
+* Author:                   Eduardo B 
+"""
+class verificaFirmaViewSet(viewsets.ModelViewSet):
+    serializer_class = ProtocolSerializer
+    
+    def create(self, request):
+
+        pk_protocol  = request.data['pk_protocol']
+        pk_user   = request.data['pk_user']
+        firma   = request.data['firma']
+
+        base         = Path(__file__).resolve().parent.parent.parent.parent.parent
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(id = pk_protocol, state = True).first()
+        if  protocolo is None:
+            return Response({'message':'Ocurrió una interrupcción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+        protocolo_serializer    = ProtocolSerializer(ProtocolSerializer.Meta.model.objects.filter(id = pk_protocol, state = True).first(), many = False)
+        
+        firmaObj = FirmaSerializer.Meta.model.objects.filter(fk_user = pk_user, state = True).first()
+        if  firmaObj is None:
+            return Response({'message':'Este miembro de equipo aun no ha firmado el protocolo'}, status = status.HTTP_400_BAD_REQUEST)
+
+
+        fileProtocol = protocolo_serializer.data['fileProtocol']
+        pathFile    = str(base) + str(fileProtocol)
+        public_key   = firmaObj.ruta_public_key
+
+        
+        try:
+            firma = firma.encode('UTF-8')
+            firma = base64.b64decode(firma)
+        except:
+            return Response({'message':'La firma proporcionada no es válida en el protocolo'}, status = status.HTTP_400_BAD_REQUEST)
+
+
+        f = open(public_key, 'r')
+        pubKey = RSA.import_key(f.read())
+        f.close()
+
+        archivo = open(pathFile, 'rb').read()
+        hash = SHA256.new(archivo)
+        verifier = PKCS115_SigScheme(pubKey)
+
+        try:
+            verifier.verify(hash, firma)
+            return Response({'message':'La firma es válida en el protocolo'}, status = status.HTTP_200_OK)
+        except:
+            return Response({'message':'La firma proporcionada no es válida en el protocolo'}, status = status.HTTP_400_BAD_REQUEST)
+            
+
+
+        

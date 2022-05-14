@@ -18,6 +18,5 @@ router.register(r'existeFirma', existeFirmaViewSet, basename = 'existeFirma')
 router.register(r'firmaDocumento', firmaDocumentoViewSet, basename = 'firmaDocumento')
 router.register(r'crearDocumentoFirmas', crearDocumentoFirmasViewSet, basename = 'crearDocumentoFirmas')
 router.register(r'firmasQR', firmasQRViewSet, basename = 'firmasQR')
-#router.register(r'verificaFirmaStart', verificaFirmaStartViewSet, basename = 'verificaFirmaStart')
-#router.register(r'verificaFirma', verificaFirmaViewSet, basename = 'verificaFirma')
+
 urlpatterns = router.urls

@@ -28,7 +28,6 @@ from django.core.files.storage import FileSystemStorage
 from Crypto.PublicKey import RSA
 from Crypto.Signature.pkcs1_15 import PKCS115_SigScheme
 from Crypto.Hash import SHA256
-import binascii
 import base64
 
 #generar pdf de firmas
@@ -339,43 +338,6 @@ class firmasQRViewSet(viewsets.ModelViewSet):
 
 
         
-
-
-"""
-* Descripcion: Verifica una firma dado el sello digital
-* Fecha de la creacion:     12/05/2022
-* Author:                   Eduardo B 
-"""
-class verificaFirmaViewSet(viewsets.ModelViewSet):
-    serializer_class = ProtocolSerializer
-    
-
-    """    
-    def get_queryset(self, pk = None):
-        return self.get_serializer().Meta.model.objects.filter(number = pk, state = True).first()
-
-    def create(self, request):
-        numero  = request.data['numero']
-        firma   = request.data['firma']
-
-        protocolo    =  self.get_queryset(numero)
-
-        protocolos_serializer    = self.get_serializer(self.get_queryset(numero), many = False)
-
-        if  protocolo is None:
-            return Response({'message':'No se encontró el protocolo, favor de varificarlo'}, status = status.HTTP_400_BAD_REQUEST)
-
-
-        pk_protocol = protocolo.id
-        firmas = FirmaProtocoloSerializer.Meta.model.objects.filter(fk_protocol = pk_protocol, state = True)
-
-        for i in firmas:
-            print(i.firma)
-
-        return Response({'message':'mensaje generico'}, status = status.HTTP_200_OK)
-    """
-
-
 class FirmaProtocolosViewSet(viewsets.ModelViewSet):
     serializer_class = TeamMemberSerializer
 
