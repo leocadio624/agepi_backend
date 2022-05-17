@@ -7,9 +7,11 @@ from rest_framework.response import Response
 from apps.firma.models import Firma
 from apps.comunidad.models import Alumno, Profesor
 
-from apps.firma.api.serializers.firma_serializers import FirmaSerializer
+from apps.firma.api.serializers.firma_serializers import FirmaSerializer, FirmaProtocoloSerializer
 from apps.team.api.serializers.team_serializers import TeamMemberSerializer
 from apps.protocol.api.serializers.protocol_serializers import ProtocolSerializer
+
+
 
 
 from django.utils import timezone
@@ -93,10 +95,6 @@ class FirmaViewSet(viewsets.ModelViewSet):
 
         ruta_firma      = str(settings.BASE_DIR) + '/firmas/' + str(fk_user)+ '/'
 
-
-        
-
-        
         cadena = 'openssl req -x509 -inform der -sha1 -days '+delta+' -newkey rsa:2048 -passout pass:'+password+''
         cadena += ' -subj "/C=MX/ST=CIUDAD DE MEXICO/L=GAM/O=AGEPI/OU=IT Department AGEPI/CN=AUTORIDAD NO CERTIFICADORA"'
         cadena += ' -inform der -keyout '+path_private+' -out '+path_public+''
@@ -141,18 +139,25 @@ class FirmaViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, pk = None):
         firma = self.get_serializer().Meta.model.objects.filter(id = pk).first()
-        
+        fk_user = firma.fk_user.id
+
+
         ruta_public_key = request.data['ruta_public_key']
         ruta_private_key = request.data['ruta_private_key']
 
         #ruta de donde se guardan los archivos
-        #dir_name = os.path.dirname(request.data['ruta_public_key'])
+        dir_name = os.path.dirname(request.data['ruta_public_key'])
             
         if  firma:
             firma.state = False
             firma.save()
             os.system('rm ' +ruta_public_key+'')
             os.system('rm ' +ruta_private_key+'')
+            os.system('rm ' +dir_name +'/private.pem'+'')
+            os.system('rm ' +dir_name +'/public.pem'+'')
+
+            #borra las firmas del usuario de todos los protocolos que ha firmado
+            FirmaProtocoloSerializer.Meta.model.objects.filter(fk_user = fk_user, state = True).update(state = False)
 
             return Response({'message':'Se ha cancelado tú firma electrónica'}, status = status.HTTP_200_OK)
         return Response({'message':'Ocurrió un error en la cancelacion de tú firma electrónica'}, status = status.HTTP_400_BAD_REQUEST)

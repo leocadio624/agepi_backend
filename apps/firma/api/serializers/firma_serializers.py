@@ -66,6 +66,28 @@ class FirmaProtocoloSerializer(serializers.ModelSerializer):
             'state':instance.state
         }
 
+class FirmaProtocoloLineaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FirmaProtocolo
+        exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
+
+    def convertUTC(self, date):
+        fmt = '%d/%m/%Y %H:%M'
+        utc = date.replace(tzinfo=pytz.UTC)
+        localtz = utc.astimezone(timezone.get_current_timezone())
+        return localtz.strftime('%m/%d/%Y %H:%M:%S')
+
+
+    def to_representation(self, instance):
+        
+        return {
+            'id':instance.id,
+            'name':instance.fk_user.name,
+            'last_name':instance.fk_user.last_name,
+            'created':self.convertUTC(instance.created_date)
+            
+        }
+
 class FirmaPDFSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirmaProtocolo

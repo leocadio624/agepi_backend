@@ -3,6 +3,9 @@ from apps.protocol.api.views.protocol_views import ProtocolViewSet, keyWordViewS
 from apps.protocol.api.views.catalogos_views import PeriodoViewSet, InscripccionViewSet
 from apps.protocol.api.views.firma_protocolos_views import (FirmaProtocolosViewSet, SolicitudesFirmaViewSet, existeFirmaViewSet, firmaDocumentoViewSet, 
 		crearDocumentoFirmasViewSet, firmasQRViewSet)
+from apps.protocol.api.views.line_protocol_views import LineProtocolStartViewSet, getIntegrantesViewSet, getFirmasViewSet
+
+
 
 router = DefaultRouter()
 router.register(r'protocolos', ProtocolViewSet, basename = 'protocolos')
@@ -18,5 +21,11 @@ router.register(r'existeFirma', existeFirmaViewSet, basename = 'existeFirma')
 router.register(r'firmaDocumento', firmaDocumentoViewSet, basename = 'firmaDocumento')
 router.register(r'crearDocumentoFirmas', crearDocumentoFirmasViewSet, basename = 'crearDocumentoFirmas')
 router.register(r'firmasQR', firmasQRViewSet, basename = 'firmasQR')
+router.register(r'LineProtocolStart', LineProtocolStartViewSet, basename = 'LineProtocolStart')
+router.register(r'getIntegrantes', getIntegrantesViewSet, basename = 'getIntegrantes')
+router.register(r'getFirmas', getFirmasViewSet, basename = 'getFirmas')
 
 urlpatterns = router.urls
+#'/protocolos/start_module/'
+
+

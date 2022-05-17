@@ -67,6 +67,8 @@ class TeamMemberSerializer(serializers.ModelSerializer):
             'fecha_integracion':instance.created_date
         }
 
+
+
 """
 * Descripcion:  Lista los alumnos disponibles para integrarce a un equipo 
 * en modulo registro equipo

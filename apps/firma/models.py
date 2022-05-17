@@ -12,6 +12,7 @@ class Firma(BaseModel):
     ruta_private_key    = models.CharField('Llave privada de certificado', max_length = 250, blank = False, null = False)
     ruta_firma          = models.CharField('Ruta donde se guardan los archivos', max_length = 250, blank = False, null = False, default = '')
     vigencia_firma      = models.DateField(blank=True, null = True)
+    #vigencia_firma      = models.DateTimeField('Fecha de eliminacion', blank=True, null = True)
     historical          = HistoricalRecords()
 
     @property

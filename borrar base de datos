@@ -65,8 +65,31 @@ estado_protocolo.save()
 estado_protocolo = ProtocolState(protocol_state = 2, description='Por firmar')
 estado_protocolo.save()
 
-estado_protocolo = ProtocolState(protocol_state = 3, description='Firmado')
+estado_protocolo = ProtocolState(protocol_state = 3, description='Firmado parcialmente')
 estado_protocolo.save()
+
+estado_protocolo = ProtocolState(protocol_state = 4, description='Firmado')
+estado_protocolo.save()
+
+estado_protocolo = ProtocolState(protocol_state = 5, description='Aceptado por la CATT')
+estado_protocolo.save()
+
+estado_protocolo = ProtocolState(protocol_state = 6, description='Seleccionado parcialmente')
+estado_protocolo.save()
+
+estado_protocolo = ProtocolState(protocol_state = 7, description='Seleccionado')
+estado_protocolo.save()
+
+estado_protocolo = ProtocolState(protocol_state = 8, description='Evaluado parcialmente')
+estado_protocolo.save()
+
+estado_protocolo = ProtocolState(protocol_state = 9, description='Evaluado')
+estado_protocolo.save()
+
+estado_protocolo = ProtocolState(protocol_state = 10, description='Dictaminado')
+estado_protocolo.save()
+
+
 
 inscripccion = catInscripccion(id = 1, descp='Normal', state = False)
 inscripccion.save()

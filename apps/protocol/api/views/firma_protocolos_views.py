@@ -35,6 +35,12 @@ import pdfkit
 import qrcode
 from PyPDF2 import PdfFileMerger
 
+#UTC
+import pytz
+import datetime
+#from datetime import datetime
+from django.utils import timezone
+
 
 
 
@@ -60,17 +66,21 @@ class SolicitudesFirmaViewSet(viewsets.ModelViewSet):
 class existeFirmaViewSet(viewsets.ModelViewSet):
     serializer_class = FirmaProtocoloSerializer
 
+    def convertUTC(self, date):
+        fmt = '%d/%m/%Y %H:%M'
+        utc = date.replace(tzinfo=pytz.UTC)
+        localtz = utc.astimezone(timezone.get_current_timezone())
+        return localtz.strftime('%Y-%m-%d %H:%M:%S')
+
+
     def create(self, request):
 
         pk_user = request.data['pk_user']
         pk_protocol  = request.data['pk_protocol']
-
-    
         firmas_protocolo = FirmaProtocoloSerializer.Meta.model.objects.filter(fk_protocol = pk_protocol, fk_user = pk_user, state = True).first()
+
         if  firmas_protocolo:
             return Response({'message':'Ya haz firmado este protocolo'}, status = status.HTTP_226_IM_USED)
-        
-
         firmas = Firma.objects.filter(fk_user = pk_user, state = True).first()
 
         if  firmas is None:
@@ -89,6 +99,54 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(self.get_queryset(), many = True)
         return Response(serializer.data, status = status.HTTP_200_OK)
 
+    def convertUTC(self, date):
+        fmt = '%d/%m/%Y %H:%M'
+        utc = date.replace(tzinfo=pytz.UTC)
+        localtz = utc.astimezone(timezone.get_current_timezone())
+        return localtz.strftime('%Y-%m-%d %H:%M:%S')
+
+
+    def actualizaEstadoProtocolo(self, fk_protocol):
+
+        #firmado parcialmente
+        estado_protocolo = 3
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(id = fk_protocol, state = True).first()
+        fk_team = protocolo.fk_team.id
+
+        integrantes = TeamMemberSerializer.Meta.model.objects.filter(fk_team = fk_team, solicitudEquipo = 2, state = True)
+        numIntegrantes = len(integrantes)
+
+
+        firmas_protocolo = FirmaProtocoloSerializer.Meta.model.objects.filter(fk_protocol = fk_protocol, state = True)
+        numFirmas = len(firmas_protocolo)
+
+        #firmado por todos los integrantes
+        if numIntegrantes == numFirmas : estado_protocolo = 4
+
+        fk_protocol_state = ProtocolState.objects.filter(protocol_state = estado_protocolo).first()
+        protocolo.fk_protocol_state = fk_protocol_state
+        protocolo.save()
+
+
+
+    def vigenciaFirma(self, start_date, vigencia):
+
+        start_date = self.convertUTC(start_date)
+        time_created = start_date.split(' ')
+        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+
+        vigencia_str = vigencia.strftime('%Y-%m-%d') +' '+time_created[1]
+        end_date = datetime.datetime.strptime(vigencia_str, "%Y-%m-%d %H:%M:%S")        
+        now = datetime.datetime.now()
+        #now = datetime.datetime.strptime('2023-05-08 16:08:09', "%Y-%m-%d %H:%M:%S")
+
+        if start_date < now < end_date:
+            return True
+        else:
+            return False
+
+
+
     def create(self, request):
         
         pk_user         = request.data['pk_user']
@@ -98,8 +156,13 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
         password        = request.data['password']
 
         firma = Firma.objects.filter(fk_user = pk_user, state = True).first()
+
         if  firma is None:
             return Response({'message':'Ocurrió una interrupcción en la comprobación de tu firma electronica, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+        
+        if  self.vigenciaFirma(firma.created_date, firma.vigencia_firma) == False:
+            return Response({'message':'La vigencia de tu firma electrónica ha vencido'}, status = status.HTTP_400_BAD_REQUEST)
+
 
         ruta_firma      = firma.ruta_firma
         base            = Path(__file__).resolve().parent.parent.parent.parent.parent
@@ -137,8 +200,6 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
         firma = base64.b64encode(signature)
         firma = firma.decode('UTF-8')
 
-        #signature2 = signature.encode()
-        #signature2 = base64.b64decode(signature2)
         
         f = open(ruta_firma+'public.pem', 'r')
         pubKey = RSA.import_key(f.read())
@@ -147,7 +208,6 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
 
 
         try:
-
             verifier.verify(hash, signature)
             serializer = self.serializer_class(data = {
                         'fk_protocol':pk_protocol,
@@ -157,11 +217,17 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
 
             if  serializer.is_valid():
                 serializer.save()
+                self.actualizaEstadoProtocolo(pk_protocol)
                 return Response({'message':'Se ha firmado el protocolo correctamente'}, status = status.HTTP_200_OK)
             return Response({'message':'Ocurrio una interrupcción, favor de intentarlo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)    
 
-        except:
+        except Exception as e:
+            print(str(e))
             return Response({'message':'La clave privada proporcionada no te pertenece'}, status = status.HTTP_400_BAD_REQUEST)
+
+                
+        """
+        """
             
 
 class crearDocumentoFirmasViewSet(viewsets.ModelViewSet):
@@ -281,10 +347,6 @@ class crearDocumentoFirmasViewSet(viewsets.ModelViewSet):
         response = HttpResponse(FileWrapper(document), content_type='application/msword')
         response['Content-Disposition'] = 'attachment'
         return response
-
-        """
-        return Response({'message':'mensaje generico'}, status = status.HTTP_200_OK)
-        """
         
 
 class firmasQRViewSet(viewsets.ModelViewSet):
@@ -357,14 +419,14 @@ class FirmaProtocolosViewSet(viewsets.ModelViewSet):
 
             fk_protocol_state = ProtocolState.objects.filter(protocol_state = 2).first()
             protocolo.fk_protocol_state = fk_protocol_state
-            #protocolo.save()
+            protocolo.save()
             
 
             
             for i in integrantes:
                 notificacion_serilizer   = NotificacionTeamSerializer(data = {'fk_userOrigen':fk_userOrigen, 'fk_userDestino':i.id, 'fk_tipoNotificacion':4})
                 if  notificacion_serilizer.is_valid():
-                    #notificacion_serilizer.save()
+                    notificacion_serilizer.save()
                     self.sendEmailPass(i.fk_user.name, i.fk_user.last_name, i.fk_user.email, numero_protocolo, titulo_protocolo)
 
             return Response({'message':'Se han enviado las solicitudes de firma a los integrantes de equipo'}, status = status.HTTP_200_OK)
