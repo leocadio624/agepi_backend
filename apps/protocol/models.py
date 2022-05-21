@@ -4,6 +4,7 @@ from django.db import models
 from simple_history.models import HistoricalRecords
 from apps.base.models import BaseModel
 from apps.team.models import Team
+from apps.comunidad.models import Academia
 
 
 class catInscripccion(BaseModel):
@@ -127,5 +128,23 @@ class keyWord(BaseModel):
     class Meta:
         verbose_name = 'Palabra clave'
         verbose_name_plural = 'Palabras clave'
+
+
+class AsignacionProtocolo(BaseModel):
+    fk_protocol = models.ForeignKey(Protocol, on_delete = models.CASCADE, verbose_name = 'fk_protocol', null = True, blank = False)
+    fk_academia = models.ForeignKey(Academia, on_delete = models.CASCADE, verbose_name = 'fk_academia', null = True, blank = False)
+        
+    historical = HistoricalRecords()
+    @property
+    def _history_user(self):
+        return self.change_by
+    
+    @_history_user.setter
+    def _history_user(self, vale):
+        self.changed_by = value
+
+    class Meta:
+        verbose_name = 'Asignacion'
+        verbose_name_plural = 'Asignaciones'
 
 

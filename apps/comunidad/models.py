@@ -53,7 +53,7 @@ class Alumno(BaseModel):
 
 class Departamento(models.Model):
 	id = models.IntegerField(primary_key = True)
-	departamento = models.CharField('Departamento escolar', max_length = 75, blank = False, null = False, unique = False)
+	departamento = models.CharField('departamento', max_length = 100, blank = False, null = False, unique = False)
 	historical = HistoricalRecords()
 
 
@@ -73,8 +73,36 @@ class Departamento(models.Model):
 	    return self.departamento
 
 
-class Profesor(BaseModel):
+class Academia(models.Model):
+	id = models.IntegerField(primary_key = True)
+	academia = models.CharField('academia', max_length = 100, blank = False, null = False, unique = False)
 	fk_departamento = models.ForeignKey(Departamento, on_delete = models.CASCADE, verbose_name = 'fk_departamento', null = False, blank = False)
+	historical = HistoricalRecords()
+
+
+	@property
+	def _history_user(self):
+	    return self.change_by
+
+	@_history_user.setter
+	def _history_user(self, vale):
+	    self.changed_by = value
+
+	class Meta:
+	    verbose_name = 'Academias'
+	    verbose_name_plural = 'Acedemias'
+
+	def __str__(self):
+	    return self.academia
+
+
+
+
+
+
+
+class Profesor(BaseModel):
+	fk_academia = models.ForeignKey(Academia, on_delete = models.CASCADE, verbose_name = 'fk_academia', null = False, blank = False)
 	fk_user = models.IntegerField(default = 0)
 	alta_app = models.BooleanField('Dado de alta en aplicacion', default = False)
 	email = models.EmailField('Correo Electronico', max_length = 50, unique = True)

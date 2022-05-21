@@ -108,8 +108,6 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
 
     def actualizaEstadoProtocolo(self, fk_protocol):
 
-        #firmado parcialmente
-        estado_protocolo = 3
         protocolo = ProtocolSerializer.Meta.model.objects.filter(id = fk_protocol, state = True).first()
         fk_team = protocolo.fk_team.id
 
@@ -121,11 +119,10 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
         numFirmas = len(firmas_protocolo)
 
         #firmado por todos los integrantes
-        if numIntegrantes == numFirmas : estado_protocolo = 4
-
-        fk_protocol_state = ProtocolState.objects.filter(protocol_state = estado_protocolo).first()
-        protocolo.fk_protocol_state = fk_protocol_state
-        protocolo.save()
+        if numIntegrantes == numFirmas:
+            fk_protocol_state = ProtocolState.objects.filter(protocol_state = 3).first()
+            protocolo.fk_protocol_state = fk_protocol_state
+            protocolo.save()
 
 
 
@@ -297,11 +294,13 @@ class crearDocumentoFirmasViewSet(viewsets.ModelViewSet):
 
         htmlstr +='<div style = "margin:30px;" >'
         for i in serializer.data:
-
             
             htmlstr +='<div style = "font-size:11px; margin-top:20px;">'+i['name']+'</div>'
             htmlstr +='<div style = "font-size:11px;" >'+i['last_name']+'</div>'
-            htmlstr +='<div style = "font-size:11px;" >tel. '+i['phone']+'</div>'
+
+            telefono = '' if i['phone'] is None else i['phone']
+            htmlstr +='<div style = "font-size:11px;" >tel. '+ telefono +'</div>'
+
             htmlstr +='<div style = "font-size:11px;" >'+i['email']+'</td>'
             htmlstr +='<div style = "font-size:11px;" >Boleta '+i['boleta']+'</td>'
             
@@ -326,9 +325,8 @@ class crearDocumentoFirmasViewSet(viewsets.ModelViewSet):
         htmlstr +='<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>'
         htmlstr +='</body'
         htmlstr +='</html>'
-        pdfkit.from_string(htmlstr, dir_pdf)
 
-        
+        pdfkit.from_string(htmlstr, dir_pdf)
         pdfs = []
 
         pdfs.append(pathFile)
@@ -342,11 +340,12 @@ class crearDocumentoFirmasViewSet(viewsets.ModelViewSet):
         with open(salida_pdf, 'wb') as salida:
             fusionador.write(salida)
 
-
+        
         document = open(salida_pdf, 'rb')
         response = HttpResponse(FileWrapper(document), content_type='application/msword')
         response['Content-Disposition'] = 'attachment'
         return response
+        
         
 
 class firmasQRViewSet(viewsets.ModelViewSet):

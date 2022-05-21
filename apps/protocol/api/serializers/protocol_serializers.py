@@ -1,7 +1,7 @@
 import pytz
 from django.utils import timezone
 
-from apps.protocol.models import Protocol, keyWord
+from apps.protocol.models import Protocol, keyWord, AsignacionProtocolo
 from rest_framework import serializers
 
 class ProtocolSerializer(serializers.ModelSerializer):
@@ -77,5 +77,18 @@ class WordListSerializer(serializers.ModelSerializer):
             'key':instance.word,
         }
         
+
+class AsignacionProtocoloSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = AsignacionProtocolo
+        exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
+
+    def to_representation(self, instance):
+        return {
+            'id':instance.id,
+            'fk_protocol':instance.fk_protocol,
+            'fk_academia':instance.fk_academia
+        }
 
 

@@ -61,7 +61,7 @@ class ProfesorSerializer(serializers.ModelSerializer):
         return {
             'id':instance.id,
             'estado': estado,
-            'departamento':instance.fk_departamento.departamento,
+            'academia':instance.fk_academia.academia,
             'fk_user':instance.fk_user,
             'email':instance.email,
             'noEmpleado':instance.noEmpleado

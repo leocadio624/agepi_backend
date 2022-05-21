@@ -56,7 +56,7 @@ class FirmaViewSet(viewsets.ModelViewSet):
             return name + '_' + last_name + '_' + boleta
 
         else:
-            noEmpleado = Alumno.objects.filter(fk_user = pk, state = True).first().noEmpleado
+            noEmpleado = Profesor.objects.filter(fk_user = pk, state = True).first().noEmpleado
             return name + '_' + last_name + '_' + noEmpleado
 
     #post

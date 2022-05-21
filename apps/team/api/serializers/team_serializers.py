@@ -120,8 +120,8 @@ class ProfesorTeamSerializer(serializers.ModelSerializer):
             'pk_user':instance.fk_user,
             'name':instance_user.name,
             'last_name':instance_user.last_name,
-            'fk_departamento':instance.fk_departamento.id,
-            'departamento':instance.fk_departamento.departamento,
+            'fk_academia':instance.fk_academia.id,
+            'academia':instance.fk_academia.academia,
             'email':instance.email,
             'noEmpleado':instance.noEmpleado
         }

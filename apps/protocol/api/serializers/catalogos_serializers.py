@@ -5,6 +5,9 @@ from rest_framework import serializers
 #from apps.comunidad.models import Alumno, Profesor
 #from apps.users.models import User
 from apps.protocol.models import PeriodoEscolar, catInscripccion
+from apps.protocol.models import ProtocolState
+from apps.comunidad.models import Academia
+
 
 
 class PeriodoSerializer(serializers.ModelSerializer):
@@ -70,6 +73,34 @@ class InscripccionSerializer(serializers.ModelSerializer):
             'descp':instance.descp,
             'state':instance.state
         }
+
+
+
+class ProtocolStateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProtocolState
+        fields = '__all__'
+        
+    def to_representation(self, instance):
+        
+        return {
+            'protocol_state':instance.protocol_state,
+            'description':instance.description
+        }
+
+class AcademiaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Academia
+        fields = '__all__'
+        
+    def to_representation(self, instance):
+        
+        return {
+            'id':instance.id,
+            'academia':instance.academia
+        }
+
+        
 
 
 

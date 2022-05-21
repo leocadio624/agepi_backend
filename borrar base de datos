@@ -13,11 +13,11 @@ python3 manage.py shell
 
 
 #
-from apps.comunidad.models import ProgramaAcademico, Departamento
+from apps.comunidad.models import ProgramaAcademico, Departamento, Academia
 from apps.notification.models import TipoNotificacion
 from apps.protocol.models import ProtocolState, catInscripccion
 
-programa = ProgramaAcademico(id = 1, programa='ISC')
+programa = ProgramaAcademico(id = 1, programa='Ingenieria en sistemas computacionales')
 programa.save()
 
 programa = ProgramaAcademico(id = 2, programa='Ingenieria en ciencia de datos')
@@ -27,11 +27,48 @@ programa = ProgramaAcademico(id = 3, programa='Ingenieria en inteligencia artifi
 programa.save()
 
 
-departamento = Departamento(id = 1, departamento='Basicas')
+#
+departamento = Departamento(id = 1, departamento='Departamento de formación basica')
 departamento.save()
 
-departamento = Departamento(id = 2, departamento='Ingenieria')
+academia = Academia(id = 1, academia='Ciencias básicas', fk_departamento = departamento)
+academia.save()
+
+#
+departamento = Departamento(id = 2, departamento='Departamento de ciencias sociales')
 departamento.save()
+
+academia = Academia(id = 2, academia='Ciencias sociales', fk_departamento = departamento)
+academia.save()
+
+academia = Academia(id = 3, academia='Proyectos estratégicos y toma de decisiones', fk_departamento = departamento)
+academia.save()
+
+#
+departamento = Departamento(id = 3, departamento='Departamento de ciencias e ingenieria de la computación')
+departamento.save()
+
+academia = Academia(id = 4, academia='Ciencias de la computación', fk_departamento = departamento)
+academia.save()
+
+academia = Academia(id = 5, academia='Ingenieria de software', fk_departamento = departamento)
+academia.save()
+
+academia = Academia(id = 6, academia='Sistemas distribuidos', fk_departamento = departamento)
+academia.save()
+
+#
+departamento = Departamento(id = 4, departamento='Departamento de ingenieria en sistemas computacionales')
+departamento.save()
+
+academia = Academia(id = 7, academia='Sistemas digitales', fk_departamento = departamento)
+academia.save()
+
+academia = Academia(id = 8, academia='Fundamentos de sistemas eléctricos', fk_departamento = departamento)
+academia.save()
+
+
+
 
 
 notificacion = TipoNotificacion(id = 1, descp='Solicitar equipo')
@@ -65,36 +102,36 @@ estado_protocolo.save()
 estado_protocolo = ProtocolState(protocol_state = 2, description='Por firmar')
 estado_protocolo.save()
 
-estado_protocolo = ProtocolState(protocol_state = 3, description='Firmado parcialmente')
+estado_protocolo = ProtocolState(protocol_state = 3, description='Firmado')
 estado_protocolo.save()
 
-estado_protocolo = ProtocolState(protocol_state = 4, description='Firmado')
+estado_protocolo = ProtocolState(protocol_state = 4, description='Aceptado por el departamento')
 estado_protocolo.save()
 
-estado_protocolo = ProtocolState(protocol_state = 5, description='Aceptado por la CATT')
+estado_protocolo = ProtocolState(protocol_state = 5, description='Seleccionado')
 estado_protocolo.save()
 
-estado_protocolo = ProtocolState(protocol_state = 6, description='Seleccionado parcialmente')
+estado_protocolo = ProtocolState(protocol_state = 6, description='Evaluado')
 estado_protocolo.save()
 
-estado_protocolo = ProtocolState(protocol_state = 7, description='Seleccionado')
-estado_protocolo.save()
-
-estado_protocolo = ProtocolState(protocol_state = 8, description='Evaluado parcialmente')
-estado_protocolo.save()
-
-estado_protocolo = ProtocolState(protocol_state = 9, description='Evaluado')
-estado_protocolo.save()
-
-estado_protocolo = ProtocolState(protocol_state = 10, description='Dictaminado')
+estado_protocolo = ProtocolState(protocol_state = 7, description='Dictaminado')
 estado_protocolo.save()
 
 
 
-inscripccion = catInscripccion(id = 1, descp='Normal', state = False)
+
+
+
+inscripccion = catInscripccion(id = 1, descp='Primera evaluación', state = False)
 inscripccion.save()
 
-inscripccion = catInscripccion(id = 2, descp='Reestructurada', state = False)
+inscripccion = catInscripccion(id = 2, descp='Segunda evalucación', state = False)
+inscripccion.save()
+
+inscripccion = catInscripccion(id = 3, descp='Remedial primera evalucación', state = False)
+inscripccion.save()
+
+inscripccion = catInscripccion(id = 4, descp='Remedial segunda evalucación', state = False)
 inscripccion.save()
 
 
