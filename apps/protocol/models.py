@@ -5,6 +5,7 @@ from simple_history.models import HistoricalRecords
 from apps.base.models import BaseModel
 from apps.team.models import Team
 from apps.comunidad.models import Academia
+from apps.users.models import User
 
 
 class catInscripccion(BaseModel):
@@ -148,3 +149,59 @@ class AsignacionProtocolo(BaseModel):
         verbose_name_plural = 'Asignaciones'
 
 
+class SelectProtocolo(BaseModel):
+    fk_protocol = models.ForeignKey(Protocol, on_delete = models.CASCADE, verbose_name = 'fk_protocol', null = True, blank = False)
+    fk_user     = models.ForeignKey(User, on_delete = models.CASCADE, verbose_name = 'fk_user', null = True, blank = False)
+        
+    historical = HistoricalRecords()
+    @property
+    def _history_user(self):
+        return self.change_by
+    
+    @_history_user.setter
+    def _history_user(self, vale):
+        self.changed_by = value
+
+    class Meta:
+        verbose_name = 'Select'
+        verbose_name_plural = 'Select'
+
+class Evaluacion(BaseModel):
+    fk_seleccion        = models.ForeignKey(SelectProtocolo, on_delete = models.CASCADE, verbose_name = 'fk_seleccion', null = True, blank = False)
+    observacion_general = models.TextField('observacion_general', blank = True, null = True, default = "")
+    dictamen            = models.BooleanField('dictamen', default = False)
+    version             = models.IntegerField('version', default = 1)
+
+    historical = HistoricalRecords()
+    @property
+    def _history_user(self):
+        return self.change_by
+    
+    @_history_user.setter
+    def _history_user(self, vale):
+        self.changed_by = value
+
+    class Meta:
+        verbose_name = 'Evaluacion'
+        verbose_name_plural = 'Evaluacion'
+
+class Pregunta(BaseModel):
+    fk_evaluacion   = models.ForeignKey(Evaluacion, on_delete = models.CASCADE, verbose_name = 'fk_evaluacion', null = True, blank = False)
+    numPregunta     = models.IntegerField('numPregunta', default = 0)
+    estado          = models.BooleanField('estado', default = False)
+    observacion     = models.TextField('observacion', blank = True, null = True, default = "")
+
+    
+
+    historical = HistoricalRecords()
+    @property
+    def _history_user(self):
+        return self.change_by
+    
+    @_history_user.setter
+    def _history_user(self, vale):
+        self.changed_by = value
+
+    class Meta:
+        verbose_name = 'Pregunta'
+        verbose_name_plural = 'Pregunta'

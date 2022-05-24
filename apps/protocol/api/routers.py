@@ -4,7 +4,9 @@ from apps.protocol.api.views.catalogos_views import PeriodoViewSet, Inscripccion
 from apps.protocol.api.views.firma_protocolos_views import (FirmaProtocolosViewSet, SolicitudesFirmaViewSet, existeFirmaViewSet, firmaDocumentoViewSet, 
 		crearDocumentoFirmasViewSet, firmasQRViewSet)
 from apps.protocol.api.views.line_protocol_views import LineProtocolStartViewSet, getIntegrantesViewSet, getFirmasViewSet
-from apps.protocol.api.views.catt_protocolos_views import ProtocolCattStartViewSet, filtrarProtocolosViewSet, asignacionProtocoloViewSet
+from apps.protocol.api.views.catt_protocolos_views import ( ProtocolCattStartViewSet, filtrarProtocolosViewSet, asignacionProtocoloViewSet, getFechaAsignacionViewSet, 
+															getProfesoresSeleccionViewSet, asignacionAcademiasViewSet, selectProtocolViewSet, generarEvalucacionViewSet)
+from apps.protocol.api.views.profesor_protocolos_views import protocolsProfesorInit
 
 
 
@@ -29,8 +31,12 @@ router.register(r'getFirmas', getFirmasViewSet, basename = 'getFirmas')
 router.register(r'ProtocolCattStart', ProtocolCattStartViewSet, basename = 'ProtocolCattStart')
 router.register(r'filtrarProtocolos', filtrarProtocolosViewSet, basename = 'filtrarProtocolos')
 router.register(r'asignacionProtocolo', asignacionProtocoloViewSet, basename = 'asignacionProtocolo')
-
-
+router.register(r'getFechaAsignacion', getFechaAsignacionViewSet, basename = 'getFechaAsignacion')
+router.register(r'getProfesoresSeleccion', getProfesoresSeleccionViewSet, basename = 'getProfesoresSeleccion')
+router.register(r'asignacionAcademias', asignacionAcademiasViewSet, basename = 'asignacionAcademias')
+router.register(r'protocolsProfesorInit', protocolsProfesorInit, basename = 'protocolsProfesorInit')
+router.register(r'selectProtocol', selectProtocolViewSet, basename = 'selectProtocol')
+router.register(r'generarEvalucacion', generarEvalucacionViewSet, basename = 'generarEvalucacion')
 
 urlpatterns = router.urls
 #'/protocolos/start_module/'
