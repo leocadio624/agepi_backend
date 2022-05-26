@@ -91,6 +91,7 @@ class Protocol(BaseModel):
     number            = models.CharField('Numero de protocolo', max_length = 10, blank = False, null = False, unique = True)
     title             = models.CharField('Titulo de protocolo', max_length = 150, blank = False, null = False)
     sumary            = models.TextField('Resumen de protocolo', blank = False, null = True)
+    dictamen          = models.BooleanField('dictamen', blank = True, null = True, default = False)
     fileProtocol      = models.FileField('Archivo de protocolo', upload_to = user_directory_path, null = True, blank = True)
     fk_protocol_state = models.ForeignKey(ProtocolState, on_delete = models.CASCADE, verbose_name = 'Estado del prtocolo', null = True, blank = False)
     fk_periodo        = models.ForeignKey(PeriodoEscolar, on_delete = models.CASCADE, verbose_name = 'Perido de inscripccion', null = True, blank = False)

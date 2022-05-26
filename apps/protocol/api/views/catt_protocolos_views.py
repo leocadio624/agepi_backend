@@ -115,6 +115,11 @@ class asignacionAcademiasViewSet(viewsets.ModelViewSet):
 
         return Response({'message':'Se han enviado los protocolos a las academias'},status = status.HTTP_200_OK)
 
+"""
+* Descripcion: Linea protocolos paso 4
+* Fecha de la creacion:     24/05/2022
+* Author:                   Eduardo Bernal Leocadio
+"""
 class getFechaAsignacionViewSet(viewsets.ModelViewSet):
     serializer_class = AsignacionProtocoloSerializer
 
@@ -157,6 +162,29 @@ class getProfesoresSeleccionViewSet(viewsets.ModelViewSet):
         serializador = self.serializer_class(self.get_queryset(fk_protocol), many = True)
 
         return Response(serializador.data,status = status.HTTP_200_OK)
+
+        
+
+"""
+* Descripcion: Linea protocolos paso 6
+* Fecha de la creacion:     24/05/2022
+* Author:                   Eduardo Bernal Leocadio
+"""
+class getFechaEvaluacionViewSet(viewsets.ModelViewSet):
+    serializer_class = SelectProtocoloLineSerializer
+
+    def get_queryset(self, pk = None):
+        return self.serializer_class().Meta.model.objects.filter(fk_protocol = pk, state = True).order_by('created_date')
+
+    def create(self, request):
+        fk_protocol = request.data['fk_protocol']
+        serializador = self.serializer_class(self.get_queryset(fk_protocol), many = True)
+
+        last = len(serializador.data) - 1
+        fecha_evaluacion = serializador.data[last]['fecha_evaluacion']
+        
+        return Response({'fecha_evaluacion':fecha_evaluacion},status = status.HTTP_200_OK)
+
 
 class selectProtocolViewSet(viewsets.ModelViewSet):
     serializer_class = SelectProtocoloSerializer
@@ -254,11 +282,55 @@ class generarEvalucacionViewSet(viewsets.ModelViewSet):
         return Response({'message':'Ocurrió una interrupcción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
 
         
+"""
+* Descripcion: Genera tabla con evaluacion de sinodal
+* Fecha de la creacion:     24/05/2022
+* Author:                   Eduardo Bernal Leocadio
+"""
+class getFechaEvaluacionViewSet(viewsets.ModelViewSet):
+    serializer_class = SelectProtocoloLineSerializer
+
+    def get_queryset(self, pk = None):
+        return self.serializer_class().Meta.model.objects.filter(fk_protocol = pk, state = True).order_by('created_date')
+
+    def create(self, request):
+        fk_protocol = request.data['fk_protocol']
+        serializador = self.serializer_class(self.get_queryset(fk_protocol), many = True)
+
+        last = len(serializador.data) - 1
+        fecha_evaluacion = serializador.data[last]['fecha_evaluacion']
+        
+        return Response({'fecha_evaluacion':fecha_evaluacion},status = status.HTTP_200_OK)
+
+
+"""
+* Descripcion: Genera tabla con evaluacion de sinodal
+* Fecha de la creacion:     24/05/2022
+* Author:                   Eduardo Bernal Leocadio
+"""
+class generarDictamenViewSet(viewsets.ModelViewSet):
+
+    def create(self, request):
+        
+        """
+        fk_protocol = request.data['fk_protocol']
+
+        select = SelectProtocoloSerializer.Meta.model.objects.filter(fk_protocol = fk_protocol, state = True).values('id')
+        evaluaciones = EvaluacionSerializer.Meta.model.objects.filter(fk_seleccion__in = select, state = True)
+
+        dictamen = True
+        for i in evaluaciones:
+            if i.dictamen == False : dictamen = False
+
+        fk_protocol_state = ProtocolStateSerializer.Meta.model.objects.filter(protocol_state = 7).first()
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(id  = fk_protocol, state = True).first()
+        protocolo.dictamen = dictamen
+        protocolo.fk_protocol_state = fk_protocol_state
+        protocolo.save()
 
         
-               
-
-
+        """
         
+        return Response({'message':'generarDictamenViewSet'},status = status.HTTP_200_OK)        
 
 

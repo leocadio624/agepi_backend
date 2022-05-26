@@ -3,9 +3,9 @@ from apps.protocol.api.views.protocol_views import ProtocolViewSet, keyWordViewS
 from apps.protocol.api.views.catalogos_views import PeriodoViewSet, InscripccionViewSet
 from apps.protocol.api.views.firma_protocolos_views import (FirmaProtocolosViewSet, SolicitudesFirmaViewSet, existeFirmaViewSet, firmaDocumentoViewSet, 
 		crearDocumentoFirmasViewSet, firmasQRViewSet)
-from apps.protocol.api.views.line_protocol_views import LineProtocolStartViewSet, getIntegrantesViewSet, getFirmasViewSet
+from apps.protocol.api.views.line_protocol_views import (LineProtocolStartViewSet, getIntegrantesViewSet, getFirmasViewSet, verEvaluacionSinodalViewSet)
 from apps.protocol.api.views.catt_protocolos_views import ( ProtocolCattStartViewSet, filtrarProtocolosViewSet, asignacionProtocoloViewSet, getFechaAsignacionViewSet, 
-															getProfesoresSeleccionViewSet, asignacionAcademiasViewSet, selectProtocolViewSet, generarEvalucacionViewSet)
+															getProfesoresSeleccionViewSet, getFechaEvaluacionViewSet, generarDictamenViewSet, asignacionAcademiasViewSet, selectProtocolViewSet, generarEvalucacionViewSet)
 from apps.protocol.api.views.profesor_protocolos_views import protocolsProfesorInit
 
 
@@ -28,11 +28,17 @@ router.register(r'firmasQR', firmasQRViewSet, basename = 'firmasQR')
 router.register(r'LineProtocolStart', LineProtocolStartViewSet, basename = 'LineProtocolStart')
 router.register(r'getIntegrantes', getIntegrantesViewSet, basename = 'getIntegrantes')
 router.register(r'getFirmas', getFirmasViewSet, basename = 'getFirmas')
+router.register(r'verEvaluacionSinodal', verEvaluacionSinodalViewSet, basename = 'verEvaluacionSinodal')
 router.register(r'ProtocolCattStart', ProtocolCattStartViewSet, basename = 'ProtocolCattStart')
 router.register(r'filtrarProtocolos', filtrarProtocolosViewSet, basename = 'filtrarProtocolos')
 router.register(r'asignacionProtocolo', asignacionProtocoloViewSet, basename = 'asignacionProtocolo')
 router.register(r'getFechaAsignacion', getFechaAsignacionViewSet, basename = 'getFechaAsignacion')
 router.register(r'getProfesoresSeleccion', getProfesoresSeleccionViewSet, basename = 'getProfesoresSeleccion')
+router.register(r'getFechaEvaluacion', getFechaEvaluacionViewSet, basename = 'getFechaEvaluacion')
+
+router.register(r'generarDictamen', generarDictamenViewSet, basename = 'generarDictamen')
+
+
 router.register(r'asignacionAcademias', asignacionAcademiasViewSet, basename = 'asignacionAcademias')
 router.register(r'protocolsProfesorInit', protocolsProfesorInit, basename = 'protocolsProfesorInit')
 router.register(r'selectProtocol', selectProtocolViewSet, basename = 'selectProtocol')

@@ -157,6 +157,7 @@ class SelectProtocoloLineSerializer(serializers.ModelSerializer):
     
         return {
             'id':instance.id,
+            'fk_protocol':instance.fk_protocol.id,
             'fk_user':instance.fk_user.id,
             'name':instance.fk_user.name+' '+instance.fk_user.last_name,
             #'last_name':instance.fk_user.last_name,
