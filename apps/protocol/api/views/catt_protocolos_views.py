@@ -1,5 +1,6 @@
 import pytz
 from django.utils import timezone
+from datetime import date
 
 from rest_framework import status
 from rest_framework import viewsets
@@ -9,6 +10,14 @@ from apps.protocol.api.serializers.protocol_serializers import (ProtocolSerializ
                                                                 SelectProtocoloSerializer, SelectProtocoloLineSerializer, EvaluacionSerializer, PreguntaSerializer)
 from apps.protocol.api.serializers.catalogos_serializers import PeriodoListSerializer, ProtocolStateSerializer, AcademiaSerializer
 
+
+import os
+import pdfkit
+import base64
+
+from pathlib import Path
+from django.http import HttpResponse
+from wsgiref.util import FileWrapper
 
 
 class ProtocolCattStartViewSet(viewsets.ModelViewSet):
@@ -310,10 +319,31 @@ class getFechaEvaluacionViewSet(viewsets.ModelViewSet):
 """
 class generarDictamenViewSet(viewsets.ModelViewSet):
 
+    def convertUTC(self, date):
+        fmt = '%d/%m/%Y %H:%M'
+        utc = date.replace(tzinfo=pytz.UTC)
+        localtz = utc.astimezone(timezone.get_current_timezone())
+        return localtz.strftime('%m/%d/%Y %H:%M:%S')
+
+
+    def get_image_file_as_base64_data(self, ruta):
+        with open(ruta, 'rb') as image_file:
+            salida = base64.b64encode(image_file.read())
+            salida = salida.decode('UTF-8')
+            return salida
+
+
     def create(self, request):
         
-        """
         fk_protocol = request.data['fk_protocol']
+        protocol_serializer = ProtocolSerializer(ProtocolSerializer.Meta.model.objects.filter(id=fk_protocol).first(), many = False)
+        fileProtocol = protocol_serializer.data['fileProtocol']
+
+        base            = Path(__file__).resolve().parent.parent.parent.parent.parent
+        pathFile        = str(base) + str(fileProtocol)
+        dir_pdf         = os.path.dirname(os.path.realpath(pathFile)) + '/dictamen.pdf'
+
+        
 
         select = SelectProtocoloSerializer.Meta.model.objects.filter(fk_protocol = fk_protocol, state = True).values('id')
         evaluaciones = EvaluacionSerializer.Meta.model.objects.filter(fk_seleccion__in = select, state = True)
@@ -324,12 +354,166 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
 
         fk_protocol_state = ProtocolStateSerializer.Meta.model.objects.filter(protocol_state = 7).first()
         protocolo = ProtocolSerializer.Meta.model.objects.filter(id  = fk_protocol, state = True).first()
-        protocolo.dictamen = dictamen
+        #protocolo.dictamen = dictamen
         protocolo.fk_protocol_state = fk_protocol_state
         protocolo.save()
 
+
+        fecha   = date.today()
+        dia     = fecha.day
+        mes     = fecha.month
+        anio    = fecha.year
+
+
+        meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+
+
+        
+        print(str(dia)+' de '+meses[mes-1]+' del '+str(anio))
+        #print(fecha_dictamen.day)
+
+        """
+        date2 = date(date1.year + vigencia, date1.month, date1.day)
+        delta = str( (date2-date1).days )
+        """
+
         
         """
+        print(protocolo.modified_date.strftime("%A"))
+        """
+
+        logo_ipn        = str(base) + '/logo-ipn.png'
+        logo_escom      = str(base) + '/escom.png'
+        firma_dictamen  = str(base) + '/firma_dictamen.png'
+
+        data_ipn    = self.get_image_file_as_base64_data(logo_ipn)
+        data_escom  = self.get_image_file_as_base64_data(logo_escom)
+        data_firma  = self.get_image_file_as_base64_data(firma_dictamen)
+
+        
+
+        """
+        htmlstr = '<!doctype html>'
+        htmlstr +='<html lang="en">'
+        htmlstr +='<head>'
+        htmlstr +='<meta charset="utf-8">'
+        htmlstr +='<meta name="viewport" content="width=device-width, initial-scale=1">'
+        htmlstr +='<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">'
+        htmlstr +='</head>'
+
+        htmlstr += '<style>'
+        htmlstr += '.header_1{'
+        htmlstr +=    'font-size:24px;'
+        htmlstr +=    'font-family: "Courier Rough Bold";'
+        htmlstr += '}'
+        htmlstr += '.header_2{'
+        htmlstr +=    'font-size:20px;'
+        htmlstr +=    'font-family: "Courier Rough Bold";'
+        htmlstr += '}'
+        htmlstr += '.header_3{'
+        htmlstr +=    'font-size:16px;'
+        htmlstr +=    'font-family: "Times New Roman", serif;'
+        htmlstr += '}'
+        htmlstr += '.header_4{'
+        htmlstr +=    'font-size:13px;'
+        htmlstr +=    'font-family: "Times New Roman", serif;'
+        htmlstr += '}'
+
+
+
+        htmlstr += '.container{'
+        htmlstr += 'margin-left: 30px!important;'
+        htmlstr += 'margin-right: 30px!important;'
+        htmlstr += 'max-width: 950px!important;'
+        htmlstr += '}'
+        htmlstr += '</style>'
+
+
+        htmlstr +='<body>'
+        htmlstr +='<br>'
+        htmlstr +='<div class= "row" >'
+        htmlstr +=      '<div class = "col-3 d-flex justify-content-start">'
+        htmlstr +=          '<img width = "170" height = "120" src="data:image/png;base64,'+data_ipn+'">'
+        htmlstr +=      '</div>'
+        htmlstr +=      '<div class = "col-6 d-flex justify-content-center">'
+        htmlstr +=          '<table class = "row">'
+        htmlstr +=              '<tr><td class = "header_1 text-center">INSTITUTO POLIT&Eacute;CNICO NACIONAL</td></tr>'
+        htmlstr +=              '<tr><td class = "header_2 text-center">ESCUELA SUPERIOR DE C&Oacute;MPUTO</td></tr>'
+        htmlstr +=              '<tr><td class = "header_3 text-center">SUBDIRECCI&Oacute;N ACAD&Eacute;MICA</td></tr>'
+        htmlstr +=              '<tr><td class = "header_4 text-center">Departamento de Formaci&oacute;n Integral e Intitucional</td></tr>'
+        htmlstr +=              '<tr><td class = "header_4 text-center">Comisi&oacute;n Acad&eacute;mica de Trabajos Terminales</td></tr>'
+        htmlstr +=          '</table>'
+        htmlstr +=      '</div>'
+        htmlstr +=      '<div class = "col-3 d-flex justify-content-end">'
+        htmlstr +=          '<img width = "170" height = "120" src="data:image/png;base64,'+data_escom+'">'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<br>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-end">'
+        htmlstr +=              '<div class = "header_4 text-center">CDMX a 20 de agosto del 2021</div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-end">'
+        htmlstr +=              '<div class = "header_4 text-center">DFII/CATT/DICT/2021</div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+        htmlstr +=          '<div class = ""><strong>C. Bernal Leocadio Josue Eduardo</strong></div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+        htmlstr +=          '<div class = ""><strong>C. Cruz Perez Raul Eduardo</strong></div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+        htmlstr +=          '<div class = ""><strong>PRESENTES</strong></div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+        htmlstr +=          '<div class = "">Con base en los lineamientos en el Documento Rector de Trabajos Terminales, se comunica que la propuesta de Trabajo Terminal</div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+        htmlstr +=          '<div class = "">Por u&acute;ltimo, se le(s) informa que los profesores sinodales en este protocolo son:</div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+        htmlstr +=          '<div class = "">Jose Alfredo Jimenez Benitez</div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+        htmlstr +=          '<div class = "">JMonserrat Perez Vera</div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+        htmlstr +=          '<div class = "">Jose Asuncion Enrriquez Zarate</div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<div class= "row container" style = "margin-top:40px">'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+        htmlstr +=          '<div class = "">Sin otro particular, se envia un cordial saludo.</div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-3 d-flex justify-content-start">'
+        htmlstr +=          '<img width = "220" height = "170" src="data:image/png;base64,'+data_firma+'">'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        htmlstr +='</body>'
+        htmlstr +='</html>'
+        pdfkit.from_string(htmlstr, dir_pdf)
+        """
+
         
         return Response({'message':'generarDictamenViewSet'},status = status.HTTP_200_OK)        
 
