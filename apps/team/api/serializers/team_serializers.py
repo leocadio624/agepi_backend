@@ -51,9 +51,6 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
 
     def to_representation(self, instance):
-
-        #print(instance.fk_team.fk_user.id)
-
         return {
             'id':instance.id,
             'fk_team':instance.fk_team.id,
@@ -66,6 +63,23 @@ class TeamMemberSerializer(serializers.ModelSerializer):
             'last_name':instance.fk_user.last_name,
             'fecha_integracion':instance.created_date
         }
+
+class TeamMemberDictamenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeamMembers
+        exclude = ('state', 'created_date', 'modified_date', 'deleted_date')
+
+
+
+    def to_representation(self, instance):
+        return {
+            'email':instance.fk_user.email,
+            'name':instance.fk_user.name,
+            'last_name':instance.fk_user.last_name
+        }
+
+
+
 
 
 

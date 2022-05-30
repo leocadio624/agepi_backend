@@ -105,7 +105,7 @@ estado_protocolo.save()
 estado_protocolo = ProtocolState(protocol_state = 3, description='Firmado')
 estado_protocolo.save()
 
-estado_protocolo = ProtocolState(protocol_state = 4, description='Aceptado por el departamento')
+estado_protocolo = ProtocolState(protocol_state = 4, description='Validado por el departamento')
 estado_protocolo.save()
 
 estado_protocolo = ProtocolState(protocol_state = 5, description='Por seleccionar')

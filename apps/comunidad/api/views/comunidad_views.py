@@ -37,8 +37,25 @@ class ProgramaAcedemicoViewSet(viewsets.ModelViewSet):
             return self.get_serializer().Meta.model.objects.filter(id = pk).first()
     
     def list(self, request):
+        #serializerAlumno = AlumnoSerializer(self.get_queryset(), many = True)
+
+        emails = []
+        boletas = []
+        objects = AlumnoSerializer.Meta.model.objects.filter(state = True).values('email', 'boleta')
+
+        for i in objects:
+            emails.append( i['email'] )
+            boletas.append( i['boleta'] )
+
+       
         serializer = self.get_serializer(self.get_queryset(), many = True)
-        return Response(serializer.data, status = status.HTTP_200_OK)
+
+        return Response(
+            {   'programas':serializer.data,
+                'al_emails':emails,
+                'al_boletas':boletas
+            }
+            , status = status.HTTP_200_OK)
 
 
 class AlumnoViewSet(viewsets.ModelViewSet):
@@ -101,3 +118,38 @@ class AlumnoViewSet(viewsets.ModelViewSet):
             alumno.save()
             return Response({'message':'Se ha eliminado el alumno correctamente'}, status = status.HTTP_200_OK)
         return Response({'message':'No existe un alumno con estos datos'}, status = status.HTTP_400_BAD_REQUEST)
+
+class cargarDatosAlumnosViewSet(viewsets.ModelViewSet):
+    serializer_class = AlumnoSerializer
+    def create(self, request):
+        
+        alumnos = request.data['alumnos']
+
+        aceptados = []
+        rechazados = []
+
+        for i in alumnos:
+            if i['estado'] == 1:
+                serializer = self.serializer_class(data = {'fk_programa':i['programa_academico'], 'email':i['correo'], 'boleta':i['boleta']})
+                if serializer.is_valid():
+                    serializer.save()
+                    aceptados.append(i)
+                else:
+                    rechazados.append(i)
+
+        emails = []
+        boletas = []
+        objects = AlumnoSerializer.Meta.model.objects.filter(state = True).values('email', 'boleta')
+
+        for i in objects:
+            emails.append( i['email'] )
+            boletas.append( i['boleta'] )
+
+
+        return Response({
+            'aceptados':aceptados,
+            'rachazados':rechazados,
+            'al_emails':emails,
+            'al_boletas':boletas
+            }, status = status.HTTP_200_OK)
+

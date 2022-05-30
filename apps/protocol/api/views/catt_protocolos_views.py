@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from apps.protocol.api.serializers.protocol_serializers import (ProtocolSerializer, AsignacionProtocoloSerializer,
                                                                 SelectProtocoloSerializer, SelectProtocoloLineSerializer, EvaluacionSerializer, PreguntaSerializer)
 from apps.protocol.api.serializers.catalogos_serializers import PeriodoListSerializer, ProtocolStateSerializer, AcademiaSerializer
+from apps.team.api.serializers.team_serializers import TeamMemberDictamenSerializer, AlumnoTeamSerializer
 
 
 import os
@@ -319,6 +320,8 @@ class getFechaEvaluacionViewSet(viewsets.ModelViewSet):
 """
 class generarDictamenViewSet(viewsets.ModelViewSet):
 
+
+
     def convertUTC(self, date):
         fmt = '%d/%m/%Y %H:%M'
         utc = date.replace(tzinfo=pytz.UTC)
@@ -332,9 +335,22 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
             salida = salida.decode('UTF-8')
             return salida
 
+    def getAlumnos(self, fk_team):
+        alumnos = AlumnoTeamSerializer.Meta.model.objects.filter(alta_app = True, state = True).values('fk_user')
+        integrantes = TeamMemberDictamenSerializer(TeamMemberDictamenSerializer.Meta.model.objects.filter(fk_team = fk_team, fk_user__in = alumnos, solicitudEquipo = 2, state = True), many = True)
+        return integrantes.data
+
+    def getSinodales(self, fk_protocol):
+
+        sinodales = SelectProtocoloSerializer.Meta.model.objects.filter(fk_protocol = fk_protocol, state = True)
+        arr_sinodales = []
+
+        for i in sinodales:arr_sinodales.append(i.fk_user.name+' '+i.fk_user.last_name)
+        return arr_sinodales
+        
 
     def create(self, request):
-        
+
         fk_protocol = request.data['fk_protocol']
         protocol_serializer = ProtocolSerializer(ProtocolSerializer.Meta.model.objects.filter(id=fk_protocol).first(), many = False)
         fileProtocol = protocol_serializer.data['fileProtocol']
@@ -344,7 +360,6 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
         dir_pdf         = os.path.dirname(os.path.realpath(pathFile)) + '/dictamen.pdf'
 
         
-
         select = SelectProtocoloSerializer.Meta.model.objects.filter(fk_protocol = fk_protocol, state = True).values('id')
         evaluaciones = EvaluacionSerializer.Meta.model.objects.filter(fk_seleccion__in = select, state = True)
 
@@ -352,11 +367,32 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
         for i in evaluaciones:
             if i.dictamen == False : dictamen = False
 
-        fk_protocol_state = ProtocolStateSerializer.Meta.model.objects.filter(protocol_state = 7).first()
+        fk_protocol_state = ProtocolStateSerializer.Meta.model.objects.filter(protocol_state = 8).first()
         protocolo = ProtocolSerializer.Meta.model.objects.filter(id  = fk_protocol, state = True).first()
-        #protocolo.dictamen = dictamen
+        protocolo.dictamen = dictamen
         protocolo.fk_protocol_state = fk_protocol_state
+
+        titulo = protocolo.title
+        numero = protocolo.number
+        periodo = protocolo.fk_periodo.periodo
+        anio = protocolo.fk_periodo.anio
+        dictamen = protocolo.dictamen
+
         protocolo.save()
+
+        cadena_periodo  = ""
+        cadena_dictamen = ""
+        cadena_dictamen = "APROBADO" if dictamen else "NO APROBADO"
+
+        if periodo == 1:
+            cadena_periodo = str(anio)+'-2 / '+str(anio+1)+'-1'
+        elif periodo ==2:
+            cadena_periodo = str(anio+1)+'-1 / '+str(anio+1)+'-2'
+
+
+        fk_team = protocolo.fk_team.id
+        alumnos = self.getAlumnos(fk_team)
+        sinodales = self.getSinodales(fk_protocol)
 
 
         fecha   = date.today()
@@ -366,19 +402,10 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
 
 
         meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-
-
-        
-        print(str(dia)+' de '+meses[mes-1]+' del '+str(anio))
-        #print(fecha_dictamen.day)
-
-        """
-        date2 = date(date1.year + vigencia, date1.month, date1.day)
-        delta = str( (date2-date1).days )
-        """
-
+        fecha_dictamen = 'CDMX, a ' + str(dia)+' de '+meses[mes-1]+' del '+str(anio)
         
         """
+        Obtiene el nombre del dia de la fecha
         print(protocolo.modified_date.strftime("%A"))
         """
 
@@ -392,7 +419,6 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
 
         
 
-        """
         htmlstr = '<!doctype html>'
         htmlstr +='<html lang="en">'
         htmlstr +='<head>'
@@ -415,8 +441,14 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
         htmlstr +=    'font-family: "Times New Roman", serif;'
         htmlstr += '}'
         htmlstr += '.header_4{'
-        htmlstr +=    'font-size:13px;'
+        htmlstr +=    'font-size:15px;'
         htmlstr +=    'font-family: "Times New Roman", serif;'
+        htmlstr += '}'
+        htmlstr += '.fuente{'
+        htmlstr +=    'font-size:17px;'
+        htmlstr +=    'text-align:justify;'
+        htmlstr +=    'padding-top:5px;'
+        htmlstr +=    'padding-bottom:5px;'
         htmlstr += '}'
 
 
@@ -451,70 +483,92 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
         htmlstr +='<br>'
         htmlstr +='<div class= "row container" >'
         htmlstr +=      '<div class = "col-12 d-flex justify-content-end">'
-        htmlstr +=              '<div class = "header_4 text-center">CDMX a 20 de agosto del 2021</div>'
+        htmlstr +=              '<div class = "header_4 text-center">'+fecha_dictamen+'</div>'
         htmlstr +=      '</div>'
         htmlstr +='</div>'
         htmlstr +='<div class= "row container" >'
         htmlstr +=      '<div class = "col-12 d-flex justify-content-end">'
-        htmlstr +=              '<div class = "header_4 text-center">DFII/CATT/DICT/2021</div>'
+        htmlstr +=              '<div class = "header_4 text-center">DFII/CATT/DICT/'+str(anio)+'</div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+        alumnos
+        for i in alumnos:
+            htmlstr +='<div class= "row container" >'
+            htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+            htmlstr +=          '<div class = "fuente"><strong>C. '+i['last_name']+' '+i['name']+'</strong></div>'
+            htmlstr +=      '</div>'
+            htmlstr +='</div>'
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+        htmlstr +=          '<div class = "fuente"><strong>PRESENTES</strong></div>'
+        htmlstr +=      '</div>'
+        htmlstr +='</div>'
+
+        cadena = 'Con base en los lineamientos en el Documento Rector de Trabajos Terminales, se comunica que la propuesta de Trabajo Terminal: <strong><i>"'+titulo+'"</i></strong>,'
+        cadena += ' con n&uacute;mero de registro <strong><i>'+numero+'</i></strong>, ha sido dictaminada <strong><u>'+cadena_dictamen+'</u></strong>, para realizarse en el ciclo escolar'
+        cadena += ' <strong>'+cadena_periodo+'</strong>.'
+
+
+        htmlstr +='<div class= "row container" >'
+        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+        htmlstr +=          '<div class = "fuente">'+cadena+'</div>'
         htmlstr +=      '</div>'
         htmlstr +='</div>'
         htmlstr +='<div class= "row container" >'
         htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
-        htmlstr +=          '<div class = ""><strong>C. Bernal Leocadio Josue Eduardo</strong></div>'
+        htmlstr +=          '<div class = "fuente" >Por &uacute;ltimo, se le(s) informa que los profesores sinodales en este protocolo son:</div>'
         htmlstr +=      '</div>'
         htmlstr +='</div>'
-        htmlstr +='<div class= "row container" >'
-        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
-        htmlstr +=          '<div class = ""><strong>C. Cruz Perez Raul Eduardo</strong></div>'
-        htmlstr +=      '</div>'
-        htmlstr +='</div>'
-        htmlstr +='<div class= "row container" >'
-        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
-        htmlstr +=          '<div class = ""><strong>PRESENTES</strong></div>'
-        htmlstr +=      '</div>'
-        htmlstr +='</div>'
-        htmlstr +='<div class= "row container" >'
-        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
-        htmlstr +=          '<div class = "">Con base en los lineamientos en el Documento Rector de Trabajos Terminales, se comunica que la propuesta de Trabajo Terminal</div>'
-        htmlstr +=      '</div>'
-        htmlstr +='</div>'
-        htmlstr +='<div class= "row container" >'
-        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
-        htmlstr +=          '<div class = "">Por u&acute;ltimo, se le(s) informa que los profesores sinodales en este protocolo son:</div>'
-        htmlstr +=      '</div>'
-        htmlstr +='</div>'
-        htmlstr +='<div class= "row container" >'
-        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
-        htmlstr +=          '<div class = "">Jose Alfredo Jimenez Benitez</div>'
-        htmlstr +=      '</div>'
-        htmlstr +='</div>'
-        htmlstr +='<div class= "row container" >'
-        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
-        htmlstr +=          '<div class = "">JMonserrat Perez Vera</div>'
-        htmlstr +=      '</div>'
-        htmlstr +='</div>'
-        htmlstr +='<div class= "row container" >'
-        htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
-        htmlstr +=          '<div class = "">Jose Asuncion Enrriquez Zarate</div>'
-        htmlstr +=      '</div>'
-        htmlstr +='</div>'
+
+        for i in sinodales:
+            htmlstr +='<div class= "row container" >'
+            htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
+            htmlstr +=          '<div class = "fuente" >'+i+'</div>'
+            htmlstr +=      '</div>'
+            htmlstr +='</div>'
+
+
+       
+
         htmlstr +='<div class= "row container" style = "margin-top:40px">'
         htmlstr +=      '<div class = "col-12 d-flex justify-content-start">'
-        htmlstr +=          '<div class = "">Sin otro particular, se envia un cordial saludo.</div>'
+        htmlstr +=          '<div class = "fuente" >Sin otro particular, se envia un cordial saludo.</div>'
         htmlstr +=      '</div>'
         htmlstr +='</div>'
         htmlstr +='<div class= "row container" >'
         htmlstr +=      '<div class = "col-3 d-flex justify-content-start">'
-        htmlstr +=          '<img width = "220" height = "170" src="data:image/png;base64,'+data_firma+'">'
+        htmlstr +=          '<img width = "320" height = "270" src="data:image/png;base64,'+data_firma+'">'
         htmlstr +=      '</div>'
         htmlstr +='</div>'
         htmlstr +='</body>'
         htmlstr +='</html>'
-        pdfkit.from_string(htmlstr, dir_pdf)
+        pdfkit.from_string(htmlstr, dir_pdf)    
+        return Response({'message':'Se ha generado el dictamen de protocolo correctamente'},status = status.HTTP_200_OK)
+
+
+"""
+* Descripcion: Genera tabla con evaluacion de sinodal
+* Fecha de la creacion:     24/05/2022
+* Author:                   Eduardo Bernal Leocadio
+"""
+class verDictamenViewSet(viewsets.ModelViewSet):
+
+    def create(self, request):
+
+        fk_protocol = request.data['fk_protocol']
+        protocol_serializer = ProtocolSerializer(ProtocolSerializer.Meta.model.objects.filter(id=fk_protocol).first(), many = False)
+        fileProtocol = protocol_serializer.data['fileProtocol']
+
+        base            = Path(__file__).resolve().parent.parent.parent.parent.parent
+        pathFile        = str(base) + str(fileProtocol)
+        dir_pdf         = os.path.dirname(os.path.realpath(pathFile)) + '/dictamen.pdf'
+
+        document = open(dir_pdf, 'rb')
+        response = HttpResponse(FileWrapper(document), content_type='application/msword')
+        response['Content-Disposition'] = 'attachment'
+        return response
+
         """
-
-        
-        return Response({'message':'generarDictamenViewSet'},status = status.HTTP_200_OK)        
-
-
+        print(dir_pdf)
+        return Response({'message':'mensaje generico'},status = status.HTTP_200_OK)
+        """

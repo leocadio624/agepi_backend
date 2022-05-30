@@ -5,7 +5,8 @@ from apps.protocol.api.views.firma_protocolos_views import (FirmaProtocolosViewS
 		crearDocumentoFirmasViewSet, firmasQRViewSet)
 from apps.protocol.api.views.line_protocol_views import (LineProtocolStartViewSet, getIntegrantesViewSet, getFirmasViewSet, verEvaluacionSinodalViewSet)
 from apps.protocol.api.views.catt_protocolos_views import ( ProtocolCattStartViewSet, filtrarProtocolosViewSet, asignacionProtocoloViewSet, getFechaAsignacionViewSet, 
-															getProfesoresSeleccionViewSet, getFechaEvaluacionViewSet, generarDictamenViewSet, asignacionAcademiasViewSet, selectProtocolViewSet, generarEvalucacionViewSet)
+															getProfesoresSeleccionViewSet, getFechaEvaluacionViewSet, generarDictamenViewSet, verDictamenViewSet,
+															asignacionAcademiasViewSet, selectProtocolViewSet, generarEvalucacionViewSet)
 from apps.protocol.api.views.profesor_protocolos_views import protocolsProfesorInit
 
 
@@ -37,6 +38,8 @@ router.register(r'getProfesoresSeleccion', getProfesoresSeleccionViewSet, basena
 router.register(r'getFechaEvaluacion', getFechaEvaluacionViewSet, basename = 'getFechaEvaluacion')
 
 router.register(r'generarDictamen', generarDictamenViewSet, basename = 'generarDictamen')
+router.register(r'verDictamen', verDictamenViewSet, basename = 'verDictamen')
+
 
 
 router.register(r'asignacionAcademias', asignacionAcademiasViewSet, basename = 'asignacionAcademias')

@@ -22,7 +22,7 @@ class ProtocolSerializer(serializers.ModelSerializer):
             'fk_inscripccion':instance.fk_inscripccion.id,
             'fk_team':instance.fk_team.id,
             'fileProtocol': instance.fileProtocol.url if instance.fileProtocol != '' else '',
-            'fk_protocol_state':instance.fk_protocol_state.id
+            'fk_protocol_state':instance.fk_protocol_state.protocol_state
             #'protocol_state':instance.protocol_state.description if instance.protocol_state is not None else ''
         }
 
@@ -45,7 +45,7 @@ class ProtocolLineaSerializer(serializers.ModelSerializer):
             'id':instance.id,
             'number':instance.number,
             'fk_team':instance.fk_team.id,
-            'fk_protocol_state':instance.fk_protocol_state.id,
+            'fk_protocol_state':instance.fk_protocol_state.protocol_state,
             'creacion':self.convertUTC(instance.created_date)
             
         }
