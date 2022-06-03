@@ -28,16 +28,32 @@ class NotificacionViewSet(viewsets.ModelViewSet):
 
         id_notificacion = request.data['id_notificacion']
         fk_user = request.data['id_user']
+        rol_user = request.data['rol_user']
         fk_user_origen = request.data['fk_user_origen']
         id_teamMember = request.data['id_teamMember']
 
-        team = TeamMembers.objects.filter(fk_user = fk_user, state = True, solicitudEquipo = 2).first()
-        if  team:
-            #aqui se inhabilita la notificacion
-            notificacion = self.get_serializer().Meta.model.objects.filter(id = id_notificacion).first()
-            notificacion.state = False
-            notificacion.save()
-            return Response({'team':team.fk_team.nombre}, status = status.HTTP_226_IM_USED)
+        if rol_user == 1:
+            team = TeamMembers.objects.filter(fk_user = fk_user, state = True, solicitudEquipo = 2).first()
+            if  team:
+                #aqui se inhabilita la notificacion
+                notificacion = self.get_serializer().Meta.model.objects.filter(id = id_notificacion).first()
+                notificacion.state = False
+                notificacion.save()
+
+                return Response(
+                    {'message':'No puedes aceptar esta invitación, ya estas relacionado en el equipo: "'+team.fk_team.nombre+'"'},
+                    status = status.HTTP_226_IM_USED)
+
+        elif rol_user == 2:
+            team = TeamMembers.objects.filter(fk_user = fk_user, state = True, solicitudEquipo = 2)
+            if  team and len(team) == 6:
+                #aqui se inhabilita la notificacion
+                notificacion = self.get_serializer().Meta.model.objects.filter(id = id_notificacion).first()
+                notificacion.state = False
+                notificacion.save()
+                return Response(
+                    {'message':'No puedes aceptar esta invitación, ya estas relacionado en seis protocolos'},
+                    status = status.HTTP_226_IM_USED)
 
 
         team_member = TeamMembers.objects.filter(id = id_teamMember, state = True, solicitudEquipo = 1).first()

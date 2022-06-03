@@ -20,7 +20,7 @@ class FirmaSerializer(serializers.ModelSerializer):
         fmt = '%d/%m/%Y %H:%M'
         utc = date.replace(tzinfo=pytz.UTC)
         localtz = utc.astimezone(timezone.get_current_timezone())
-        return localtz.strftime('%m/%d/%Y %H:%M:%S')
+        return localtz.strftime('%d/%m/%Y %H:%M:%S')
 
 
     def validate(self, data):
@@ -75,7 +75,7 @@ class FirmaProtocoloLineaSerializer(serializers.ModelSerializer):
         fmt = '%d/%m/%Y %H:%M'
         utc = date.replace(tzinfo=pytz.UTC)
         localtz = utc.astimezone(timezone.get_current_timezone())
-        return localtz.strftime('%m/%d/%Y %H:%M:%S')
+        return localtz.strftime('%d/%m/%Y %H:%M:%S')
 
 
     def to_representation(self, instance):
@@ -126,7 +126,7 @@ class FirmaQrSerializer(serializers.ModelSerializer):
         fmt = '%d/%m/%Y %H:%M'
         utc = date.replace(tzinfo=pytz.UTC)
         localtz = utc.astimezone(timezone.get_current_timezone())
-        return localtz.strftime('%m/%d/%Y %H:%M:%S')
+        return localtz.strftime('%d/%m/%Y %H:%M:%S')
 
     def to_representation(self, instance):
 

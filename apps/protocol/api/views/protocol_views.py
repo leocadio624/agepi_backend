@@ -10,6 +10,12 @@ from apps.team.api.serializers.team_serializers import TeamMemberSerializer
 from apps.team.models import TeamMembers
 from apps.users.models import User
 
+#Envio de correos
+from django.conf import settings
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 
 
 
@@ -61,8 +67,66 @@ class ProtocolByTeamViewSet(viewsets.ModelViewSet):
         
 
 class ProtocolViewSet(viewsets.ModelViewSet):
+    serializer_class = ProtocolSerializer
 
-    serializer_class = ProtocolSerializer    
+    """
+    * Descripcion:  Envia correo electronico de que se ha creado un protocolo
+    * Fecha de la creacion:     02/06/2022
+    * Author:                   Eduardo B 
+    """
+    def enviarCorreo(self, fk_protocol):
+        
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(id = fk_protocol, state = True).first()
+        titulo = protocolo.title
+        numero = protocolo.number
+        fk_team = protocolo.fk_team.id
+
+
+        host = settings.EMAIL_HOST
+        sender = settings.EMAIL_HOST_USER
+        password = settings.EMAIL_HOST_PASSWORD
+
+
+        
+        
+        
+
+        miembros_equipo = TeamMemberSerializer.Meta.model.objects.filter(fk_team = fk_team, solicitudEquipo = 2, state= True)
+        for i in miembros_equipo:
+
+            receiver = i.fk_user.email
+            receiver = 'leocadio624@gmail.com'
+
+            
+            msg = MIMEMultipart()
+            msg['From'] = sender
+            msg['To'] = sender
+            msg['Subject'] = 'Registro protocolo'
+            
+
+            
+            email_body = 'Hola '+i.fk_user.name+' '+i.fk_user.last_name+' se ha registrado el protocolo con número '+numero+' y de título '+titulo+''
+            msg.attach(MIMEText(email_body, 'plain'))
+            email_body_content = msg.as_string()
+
+            server = smtplib.SMTP(host)
+            server.starttls()
+
+            server.login(sender, password)
+            server.sendmail(sender, receiver, email_body_content)
+            server.quit()
+        
+
+
+
+            
+
+
+
+        
+
+
+
     def get_queryset(self, pk = None):
         if pk is None:
             return self.get_serializer().Meta.model.objects.filter(state = True)
@@ -115,6 +179,7 @@ class ProtocolViewSet(viewsets.ModelViewSet):
         request.data['number'] = nextProtocolo
         
         if  serializer.is_valid():
+            
             serializer.save()
             fk_Protocol = serializer.data['id']
 
@@ -122,6 +187,8 @@ class ProtocolViewSet(viewsets.ModelViewSet):
                 key_serializer = keyWordSerializer(data = {'word':word, 'fk_Protocol':fk_Protocol})
                 if key_serializer.is_valid():
                     key_serializer.save()
+            self.enviarCorreo(fk_Protocol)
+            
 
             return Response({'message':'Protocolo registrado correctamente'}, status = status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)

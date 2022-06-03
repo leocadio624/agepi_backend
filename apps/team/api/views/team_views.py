@@ -77,7 +77,8 @@ class TeamViewSet(viewsets.ModelViewSet):
     def destroy(self, request, pk = None):
 
         team = self.get_queryset().filter(id = pk).first()
-        protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = pk, fk_protocol_state = 1, state = True).first()
+        #protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = pk, fk_protocol_state = 1, state = True).first()
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = pk, state = True).first()
 
         if protocolo:
             return Response({'message':'No es posible la eliminación, se ha iniciado el registro de un protocolo con este equipo'}, status = status.HTTP_226_IM_USED)
@@ -147,10 +148,13 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
     def destroy(self, request, pk = None):
 
         fk_team = request.data['fk_team']
-        protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = fk_team, fk_protocol_state = 1, state = True).first()
 
+        #protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = fk_team, fk_protocol_state = 1, state = True).first()
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = fk_team, state = True).first()
+        print(protocolo)
         if  protocolo:
-            return Response({'message':'No es posible la eliminación, se ha iniciado el registro de un protocolo con este equipo'}, status = status.HTTP_226_IM_USED)
+            return Response({'message':'No es posible salir del equipo, se ha iniciado el registro de un protocolo con este equipo'}, status = status.HTTP_226_IM_USED)
+
 
         integrante = self.get_serializer().Meta.model.objects.filter(id = pk, state = True, solicitudEquipo  = 2).first()
         if  integrante:
@@ -276,6 +280,11 @@ class AlumnoTeamViewSet(viewsets.ModelViewSet):
             return Response({'message' : 'Para enviar una solicitud de equipo debe crear ó pertenecer a un equipo'}, status = status.HTTP_206_PARTIAL_CONTENT)
         
         fk_team = team['fk_team']
+        #verificar esta condicion
+        #protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = fk_team, fk_protocol_state = 1, state = True).first()
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = fk_team, state = True).first()
+        if  protocolo:
+            return Response({'message':'No es posible enviar una solicitud de equipo cuando ya se ha iniciado el registro de un protocolo'}, status = status.HTTP_206_PARTIAL_CONTENT)
 
 
         serializer_member   = TeamMemberSerializer(data = {'fk_team':fk_team, 'fk_user':fk_user, 'solicitudEquipo':1})

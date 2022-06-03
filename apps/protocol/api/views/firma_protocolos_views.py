@@ -81,8 +81,8 @@ class existeFirmaViewSet(viewsets.ModelViewSet):
 
         if  firmas_protocolo:
             return Response({'message':'Ya haz firmado este protocolo'}, status = status.HTTP_226_IM_USED)
+        
         firmas = Firma.objects.filter(fk_user = pk_user, state = True).first()
-
         if  firmas is None:
             return Response({'message':'sin firma registrada'}, status = status.HTTP_206_PARTIAL_CONTENT)
         return Response({'message':'continua'}, status = status.HTTP_200_OK)

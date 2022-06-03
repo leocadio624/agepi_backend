@@ -19,7 +19,7 @@ class NotificacionTeamSerializer(serializers.ModelSerializer):
 		fmt = '%d/%m/%Y %H:%M'
 		utc = date.replace(tzinfo=pytz.UTC)
 		localtz = utc.astimezone(timezone.get_current_timezone())
-		return localtz.strftime('%m/%d/%Y %H:%M:%S')
+		return localtz.strftime('%d/%m/%Y %H:%M:%S')
 
 	def validate(self, data):
 		return data
@@ -71,7 +71,7 @@ class SolicitudFirmaSerializer(serializers.ModelSerializer):
 		fmt = '%d/%m/%Y %H:%M'
 		utc = date.replace(tzinfo=pytz.UTC)
 		localtz = utc.astimezone(timezone.get_current_timezone())
-		return localtz.strftime('%m/%d/%Y %H:%M:%S')
+		return localtz.strftime('%d/%m/%Y %H:%M:%S')
 
 	def validate(self, data):
 		return data

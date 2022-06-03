@@ -36,7 +36,7 @@ class ProtocolLineaSerializer(serializers.ModelSerializer):
         fmt = '%d/%m/%Y %H:%M'
         utc = date.replace(tzinfo=pytz.UTC)
         localtz = utc.astimezone(timezone.get_current_timezone())
-        return localtz.strftime('%m/%d/%Y %H:%M:%S')
+        return localtz.strftime('%d/%m/%Y %H:%M:%S')
 
 
     def to_representation(self, instance):
@@ -144,7 +144,7 @@ class SelectProtocoloLineSerializer(serializers.ModelSerializer):
         fmt = '%d/%m/%Y %H:%M'
         utc = date.replace(tzinfo=pytz.UTC)
         localtz = utc.astimezone(timezone.get_current_timezone())
-        return localtz.strftime('%m/%d/%Y %H:%M:%S')
+        return localtz.strftime('%d/%m/%Y %H:%M:%S')
 
     def to_representation(self, instance):
         evaluado         = 0
@@ -160,7 +160,6 @@ class SelectProtocoloLineSerializer(serializers.ModelSerializer):
             'fk_protocol':instance.fk_protocol.id,
             'fk_user':instance.fk_user.id,
             'name':instance.fk_user.name+' '+instance.fk_user.last_name,
-            #'last_name':instance.fk_user.last_name,
             'created_date':self.convertUTC(instance.created_date),
             'evaluado':evaluado,
             'fecha_evaluacion':fecha_evaluacion

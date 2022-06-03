@@ -12,6 +12,8 @@ from apps.protocol.api.serializers.catalogos_serializers import PeriodoListSeria
 from apps.team.api.serializers.team_serializers import TeamMemberDictamenSerializer, AlumnoTeamSerializer
 
 
+
+
 import os
 import pdfkit
 import base64
@@ -19,6 +21,9 @@ import base64
 from pathlib import Path
 from django.http import HttpResponse
 from wsgiref.util import FileWrapper
+
+
+
 
 
 class ProtocolCattStartViewSet(viewsets.ModelViewSet):
@@ -181,19 +186,47 @@ class getProfesoresSeleccionViewSet(viewsets.ModelViewSet):
 * Author:                   Eduardo Bernal Leocadio
 """
 class getFechaEvaluacionViewSet(viewsets.ModelViewSet):
-    serializer_class = SelectProtocoloLineSerializer
+    
 
-    def get_queryset(self, pk = None):
-        return self.serializer_class().Meta.model.objects.filter(fk_protocol = pk, state = True).order_by('created_date')
+    def convertUTC(self, date):
+        fmt = '%d/%m/%Y %H:%M'
+        utc = date.replace(tzinfo=pytz.UTC)
+        localtz = utc.astimezone(timezone.get_current_timezone())
+        return localtz.strftime('%d/%m/%Y %H:%M:%S')
+
+    def create(self, request):
+
+        fk_protocol = request.data['fk_protocol']
+        select_protocol = SelectProtocoloSerializer.Meta.model.objects.filter(fk_protocol = fk_protocol, state = True).values('id')
+
+        evaluaciones = EvaluacionSerializer.Meta.model.objects.filter(fk_seleccion__in = select_protocol, state = True).values('created_date').order_by('-created_date')
+
+        fecha_evaluacion = evaluaciones[0]['created_date']
+        fecha_evaluacion = self.convertUTC(fecha_evaluacion)
+
+        
+        return Response({'fecha_evaluacion':fecha_evaluacion},status = status.HTTP_200_OK)
+
+"""
+* Descripcion: Obtiene la fecha del dictamen
+* Fecha de la creacion:     01/06/2022
+* Author:                   Eduardo Bernal Leocadio
+"""
+class getFechaDictamenViewSet(viewsets.ModelViewSet):
+    
+    def convertUTC(self, date):
+        fmt = '%d/%m/%Y %H:%M'
+        utc = date.replace(tzinfo=pytz.UTC)
+        localtz = utc.astimezone(timezone.get_current_timezone())
+        return localtz.strftime('%d/%m/%Y %H:%M:%S')
 
     def create(self, request):
         fk_protocol = request.data['fk_protocol']
-        serializador = self.serializer_class(self.get_queryset(fk_protocol), many = True)
-
-        last = len(serializador.data) - 1
-        fecha_evaluacion = serializador.data[last]['fecha_evaluacion']
+        protocol = ProtocolSerializer.Meta.model.objects.filter(id = fk_protocol, state = True).first()
+        fecha_dictamen = self.convertUTC(protocol.modified_date)
         
-        return Response({'fecha_evaluacion':fecha_evaluacion},status = status.HTTP_200_OK)
+        return Response({'fecha_dictamen':fecha_dictamen},status = status.HTTP_200_OK)
+
 
 
 class selectProtocolViewSet(viewsets.ModelViewSet):
@@ -297,6 +330,7 @@ class generarEvalucacionViewSet(viewsets.ModelViewSet):
 * Fecha de la creacion:     24/05/2022
 * Author:                   Eduardo Bernal Leocadio
 """
+"""
 class getFechaEvaluacionViewSet(viewsets.ModelViewSet):
     serializer_class = SelectProtocoloLineSerializer
 
@@ -311,6 +345,7 @@ class getFechaEvaluacionViewSet(viewsets.ModelViewSet):
         fecha_evaluacion = serializador.data[last]['fecha_evaluacion']
         
         return Response({'fecha_evaluacion':fecha_evaluacion},status = status.HTTP_200_OK)
+"""
 
 
 """
