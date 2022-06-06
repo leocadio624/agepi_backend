@@ -144,10 +144,6 @@ exit()
 
 
 
-#eliminar objetos de tabla
-from apps.firma.models import Firma
-Firma.objects.all().delete()
-
 
 
 
