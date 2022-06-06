@@ -1,8 +1,8 @@
 from rest_framework.routers import DefaultRouter
 from apps.protocol.api.views.protocol_views import ProtocolViewSet, keyWordViewSet, wordListViewSet, ProtocolStartModuleViewSet, ProtocolByTeamViewSet
 from apps.protocol.api.views.catalogos_views import PeriodoViewSet, InscripccionViewSet
-from apps.protocol.api.views.firma_protocolos_views import (FirmaProtocolosViewSet, SolicitudesFirmaViewSet, existeFirmaViewSet, firmaDocumentoViewSet, 
-		crearDocumentoFirmasViewSet, firmasQRViewSet)
+from apps.protocol.api.views.firma_protocolos_views import (FirmaProtocolosViewSet, SolicitudesFirmaViewSet, existeFirmaViewSet, 
+	firmaDocumentoViewSet, firmaDocumentoSatViewSet, crearDocumentoFirmasViewSet, firmasQRViewSet)
 from apps.protocol.api.views.line_protocol_views import (LineProtocolStartViewSet, getIntegrantesViewSet, getFirmasViewSet, verEvaluacionSinodalViewSet)
 from apps.protocol.api.views.catt_protocolos_views import ( ProtocolCattStartViewSet, filtrarProtocolosViewSet, asignacionProtocoloViewSet, getFechaAsignacionViewSet, 
 															getProfesoresSeleccionViewSet, getFechaEvaluacionViewSet, generarDictamenViewSet, getFechaDictamenViewSet, verDictamenViewSet,
@@ -24,6 +24,7 @@ router.register(r'solicta_firma', FirmaProtocolosViewSet, basename = 'solicta_fi
 router.register(r'solicitudes_firma', SolicitudesFirmaViewSet, basename = 'solicitudes_firma')
 router.register(r'existeFirma', existeFirmaViewSet, basename = 'existeFirma')
 router.register(r'firmaDocumento', firmaDocumentoViewSet, basename = 'firmaDocumento')
+router.register(r'firmaDocumentoSat', firmaDocumentoSatViewSet, basename = 'firmaDocumentoSat')
 router.register(r'crearDocumentoFirmas', crearDocumentoFirmasViewSet, basename = 'crearDocumentoFirmas')
 router.register(r'firmasQR', firmasQRViewSet, basename = 'firmasQR')
 router.register(r'LineProtocolStart', LineProtocolStartViewSet, basename = 'LineProtocolStart')

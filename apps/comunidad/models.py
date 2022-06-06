@@ -29,9 +29,9 @@ class ProgramaAcademico(models.Model):
 class Alumno(BaseModel):
 	fk_programa = models.ForeignKey(ProgramaAcademico, on_delete = models.CASCADE, verbose_name = 'pk de programa academico', null = False, blank = False)
 	fk_user = models.IntegerField(default = 0)
-	alta_app = models.BooleanField('Dado de alta en aplicacion', default = False)
-	email = models.EmailField('Correo Electronico', max_length = 50,  blank = False, unique = False)
-	boleta = models.CharField('Boleta', 			max_length = 50,  blank = False, unique = True)
+	alta_app = models.BooleanField('alta_app', default = False)
+	email = models.EmailField('email', max_length = 50,  blank = False, unique = False)
+	boleta = models.CharField('boleta', 			max_length = 50,  blank = False, unique = True)
 	
 
 	@property
@@ -104,9 +104,9 @@ class Academia(models.Model):
 class Profesor(BaseModel):
 	fk_academia = models.ForeignKey(Academia, on_delete = models.CASCADE, verbose_name = 'fk_academia', null = False, blank = False)
 	fk_user = models.IntegerField(default = 0)
-	alta_app = models.BooleanField('Dado de alta en aplicacion', default = False)
-	email = models.EmailField('Correo Electronico', max_length = 50, unique = True)
-	noEmpleado = models.CharField('Numero de noEmpleado', max_length = 50, blank = True, null = True)
+	alta_app = models.BooleanField('alta_app', default = False)
+	email = models.EmailField('email', max_length = 50, unique = True)
+	noEmpleado = models.CharField('noEmpleado', max_length = 50, blank = True, null = True)
 	
 	@property
 	def _history_user(self):

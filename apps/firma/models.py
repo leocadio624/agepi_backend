@@ -35,6 +35,7 @@ class FirmaProtocolo(BaseModel):
     fk_protocol = models.ForeignKey(Protocol, on_delete = models.CASCADE, verbose_name = 'pk de protocolo', null = False, blank = False)
     fk_user     = models.ForeignKey(User, on_delete = models.CASCADE, verbose_name = 'pk de usuario', null = False, blank = False)
     firma       = models.CharField('firma de protocolo', max_length = 400, blank = False, null = False, default = '')
+    firma_sat   = models.BooleanField('firma_sat', default = False)
     historical  = HistoricalRecords()
 
     @property

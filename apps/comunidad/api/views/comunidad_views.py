@@ -37,19 +37,23 @@ class ProgramaAcedemicoViewSet(viewsets.ModelViewSet):
             return self.get_serializer().Meta.model.objects.filter(id = pk).first()
     
     def list(self, request):
-        #serializerAlumno = AlumnoSerializer(self.get_queryset(), many = True)
-
+        
         emails = []
         boletas = []
-        objects = AlumnoSerializer.Meta.model.objects.filter(state = True).values('email', 'boleta')
+        alumnos = AlumnoSerializer.Meta.model.objects.filter(state = True).values('email', 'boleta')
+        profesores = ProfesorSerializer.Meta.model.objects.filter(state = True).values('email', 'noEmpleado')
+        
 
-        for i in objects:
+        for i in alumnos:
             emails.append( i['email'] )
             boletas.append( i['boleta'] )
 
-       
-        serializer = self.get_serializer(self.get_queryset(), many = True)
+        for i in profesores:
+            emails.append( i['email'] )
+            boletas.append( i['noEmpleado'] )
 
+
+        serializer = self.get_serializer(self.get_queryset(), many = True)
         return Response(
             {   'programas':serializer.data,
                 'al_emails':emails,
@@ -124,7 +128,6 @@ class cargarDatosAlumnosViewSet(viewsets.ModelViewSet):
     def create(self, request):
         
         alumnos = request.data['alumnos']
-
         aceptados = []
         rechazados = []
 
@@ -137,6 +140,7 @@ class cargarDatosAlumnosViewSet(viewsets.ModelViewSet):
                 else:
                     rechazados.append(i)
 
+        """
         emails = []
         boletas = []
         objects = AlumnoSerializer.Meta.model.objects.filter(state = True).values('email', 'boleta')
@@ -144,12 +148,40 @@ class cargarDatosAlumnosViewSet(viewsets.ModelViewSet):
         for i in objects:
             emails.append( i['email'] )
             boletas.append( i['boleta'] )
+        """
 
 
         return Response({
             'aceptados':aceptados,
-            'rachazados':rechazados,
-            'al_emails':emails,
-            'al_boletas':boletas
+            'rachazados':rechazados
             }, status = status.HTTP_200_OK)
 
+
+class cargarDatosProfesoresViewSet(viewsets.ModelViewSet):
+    serializer_class = ProfesorSerializer
+
+    def create(self, request):
+
+        profesores = request.data['profesores']
+        aceptados = []
+        rechazados = []
+
+        for i in profesores:
+            if i['estado'] == 1:
+                serializer = self.serializer_class(data = {'fk_academia':i['academia'], 'email':i['correo'], 'noEmpleado':i['no_empleado']})
+                if serializer.is_valid():
+                    serializer.save()
+                    aceptados.append(i)
+                else:
+                    rechazados.append(i)
+
+        return Response({
+            'aceptados':aceptados,
+            'rachazados':rechazados
+        }, status = status.HTTP_200_OK)
+
+        
+            
+        
+
+        

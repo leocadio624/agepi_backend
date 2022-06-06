@@ -272,9 +272,18 @@ class getIntegrantesProtocoloViewSet(viewsets.ModelViewSet):
 * Descripcion: Verifica una firma dado el sello digital
 * Fecha de la creacion:     12/05/2022
 * Author:                   Eduardo B 
+http://127.0.0.1:8000/firma/verificaFirma/
 """
 class verificaFirmaViewSet(viewsets.ModelViewSet):
     serializer_class = ProtocolSerializer
+
+    #para listar firmas de protocolos y 
+    def get_queryset(self, pk = None):
+        return FirmaProtocoloSerializer.Meta.model.objects.filter(state = True)
+
+    def list(self, request):
+        firmas_serializer = FirmaProtocoloSerializer(self.get_queryset(), many = True)
+        return Response(firmas_serializer.data, status = status.HTTP_200_OK)
     
     def create(self, request):
 
@@ -284,13 +293,17 @@ class verificaFirmaViewSet(viewsets.ModelViewSet):
 
         base         = Path(__file__).resolve().parent.parent.parent.parent.parent
         protocolo = ProtocolSerializer.Meta.model.objects.filter(id = pk_protocol, state = True).first()
+
         if  protocolo is None:
             return Response({'message':'Ocurrió una interrupcción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
         protocolo_serializer    = ProtocolSerializer(ProtocolSerializer.Meta.model.objects.filter(id = pk_protocol, state = True).first(), many = False)
         
-        firmaObj = FirmaSerializer.Meta.model.objects.filter(fk_user = pk_user, state = True).first()
+        firmaObj = FirmaProtocoloSerializer.Meta.model.objects.filter(fk_user = pk_user, state = True).first()
         if  firmaObj is None:
             return Response({'message':'Este miembro de equipo aun no ha firmado el protocolo'}, status = status.HTTP_400_BAD_REQUEST)
+
+
+        FirmaSerializer
 
 
         fileProtocol = protocolo_serializer.data['fileProtocol']

@@ -41,6 +41,10 @@ import datetime
 #from datetime import datetime
 from django.utils import timezone
 
+#autenticacion cfdi
+from cfdiclient import Autenticacion
+from cfdiclient import Fiel
+
 
 
 
@@ -145,7 +149,9 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
 
 
     def create(self, request):
-        
+
+        """
+        """
         pk_user         = request.data['pk_user']
         pk_protocol     = request.data['pk_protocol']
         fileProtocol    = request.data['fileProtocol']
@@ -177,13 +183,10 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
 
 
         os.system('openssl pkcs8 -in '+in_key+' -out '+out_key+' -passin pass:'+password+'')
-        f = open(out_key, "r")
-        f.close()
-
-        
         try:
             f = open(out_key, 'r')
             keyPair = RSA.import_key(f.read())
+
         except:
             return Response({'message':'Contraseña de firma electrónica incorrecta, favor de verificarlo'}, status = status.HTTP_400_BAD_REQUEST)
 
@@ -209,7 +212,8 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
             serializer = self.serializer_class(data = {
                         'fk_protocol':pk_protocol,
                         'fk_user':pk_user,
-                        'firma':firma
+                        'firma':firma,
+                        'firma_sat':False
                         })
 
             if  serializer.is_valid():
@@ -219,14 +223,115 @@ class firmaDocumentoViewSet(viewsets.ModelViewSet):
             return Response({'message':'Ocurrio una interrupcción, favor de intentarlo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)    
 
         except Exception as e:
-            print(str(e))
             return Response({'message':'La clave privada proporcionada no te pertenece'}, status = status.HTTP_400_BAD_REQUEST)
 
                 
-        """
-        """
-            
+class firmaDocumentoSatViewSet(viewsets.ModelViewSet):
+    serializer_class = FirmaProtocoloSerializer
 
+    def create(self, request):
+
+        pk_user         = request.data['pk_user']
+        pk_protocol     = request.data['pk_protocol']
+        fileProtocol    = request.data['fileProtocol']
+        private         = request.FILES.get("private_sat")
+        public         = request.FILES.get("public_sat")
+        password        = request.data['password']
+        
+
+        base            = Path(__file__).resolve().parent.parent.parent.parent.parent
+        pathFile        = str(base) + str(fileProtocol)
+        dir_protocol    = os.path.dirname(pathFile) +'/'+str(pk_user)+'/'
+
+
+
+        os.system('rm '+dir_protocol+'*')
+        fss         = FileSystemStorage(location = dir_protocol)
+        fss.save(private.name, private)
+        fss.save(public.name, public)
+
+
+        in_key  = dir_protocol + private.name + ''
+        out_key = dir_protocol + 'private.pem'
+
+
+        in_cer  = dir_protocol + public.name + ''
+        out_cer = dir_protocol + 'public.pem'
+
+        cer_der = open(in_cer, 'rb').read()
+        key_der = open(in_key, 'rb').read()
+
+        #verificacion contraseña
+        try:
+            fiel = Fiel(cer_der, key_der, password)
+        except:
+            return Response({'message':'Contraseña de firma electrónica incorrecta, favor de verificarlo'}, status = status.HTTP_400_BAD_REQUEST)
+
+
+        #verificacion token SAT
+        try:
+            auth = Autenticacion(fiel)
+            token = auth.obtener_token()
+        except:
+            return Response({'message':'Ocurrió un problema al comprobar tu firma electrónica'}, status = status.HTTP_400_BAD_REQUEST)
+    
+
+    
+        os.system('openssl pkcs8 -inform DER -in '+in_key+' -out '+out_key+' -passin pass:'+password+'')
+        try:
+            f = open(out_key, 'r')
+            keyPair = RSA.import_key(f.read())
+        except:
+            return Response({'message':'Contraseña de firma electrónica incorrecta, favor de verificarlo'}, status = status.HTTP_400_BAD_REQUEST)
+
+
+        os.system('openssl x509 -inform der -in '+in_cer+' -out '+out_cer+'')
+        try:
+            f = open(out_cer, 'r')
+            pubKey = RSA.import_key(f.read())
+            f.close()
+            verifier = PKCS115_SigScheme(pubKey)
+        except:
+            return Response({'message':'Ocurrió un problema al comprobar tu certificado digital, favor de verificarlo'}, status = status.HTTP_400_BAD_REQUEST)
+
+
+        os.remove(in_key)
+        os.remove(in_cer)
+
+
+        archivo = open(pathFile, 'rb').read()
+        f.close()
+        hash = SHA256.new(archivo)
+        
+        signer = PKCS115_SigScheme(keyPair)
+        signature = signer.sign(hash)
+
+        firma = base64.b64encode(signature)
+        firma = firma.decode('UTF-8')
+
+        try:
+            verifier.verify(hash, signature)
+            serializer = self.serializer_class(data = {
+                        'fk_protocol':pk_protocol,
+                        'fk_user':pk_user,
+                        'firma':firma,
+                        'firma_sat':True
+                        })
+
+            if  serializer.is_valid():
+                serializer.save()
+
+                instancia = firmaDocumentoViewSet()
+                instancia.actualizaEstadoProtocolo(pk_protocol)
+                
+
+                return Response({'message':'Se ha firmado el protocolo correctamente'}, status = status.HTTP_200_OK)
+            return Response({'message':'Ocurrio una interrupcción, favor de intentarlo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            return Response({'message':'Ocurrio una interrupcción, favor de intentarlo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+            
+        
 class crearDocumentoFirmasViewSet(viewsets.ModelViewSet):
     serializer_class = FirmaPDFSerializer
     def get_queryset(self, pk = None):
