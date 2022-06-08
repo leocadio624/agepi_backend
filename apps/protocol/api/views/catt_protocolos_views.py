@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from apps.protocol.api.serializers.protocol_serializers import (ProtocolSerializer, AsignacionProtocoloSerializer,
                                                                 SelectProtocoloSerializer, SelectProtocoloLineSerializer, EvaluacionSerializer, PreguntaSerializer)
 from apps.protocol.api.serializers.catalogos_serializers import PeriodoListSerializer, ProtocolStateSerializer, AcademiaSerializer
-from apps.team.api.serializers.team_serializers import TeamMemberDictamenSerializer, AlumnoTeamSerializer
+from apps.team.api.serializers.team_serializers import TeamMemberDictamenSerializer, AlumnoTeamSerializer, TeamMemberSerializer
 
 
 
@@ -19,6 +19,14 @@ import pdfkit
 import base64
 
 from pathlib import Path
+from django.http import HttpResponse
+from wsgiref.util import FileWrapper
+
+#Correos
+from django.conf import settings
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from django.http import HttpResponse
 from wsgiref.util import FileWrapper
 
@@ -240,18 +248,71 @@ class selectProtocolViewSet(viewsets.ModelViewSet):
         if  serializer.is_valid():
             serializer.save()
 
-            
+    
             select = self.serializer_class().Meta.model.objects.filter(fk_protocol = fk_protocol, state = True)
             if  len(select) == 3:
                 fk_protocol_state = ProtocolStateSerializer.Meta.model.objects.filter(protocol_state = 6).first()
                 protocolo = ProtocolSerializer.Meta.model.objects.filter(id  = fk_protocol, state = True).first()
                 protocolo.fk_protocol_state = fk_protocol_state
                 protocolo.save()
+
+                numero = protocolo.number
+                titulo = protocolo.title
+                fk_team = protocolo.fk_team.id
+
+
+                integrantes = TeamMemberSerializer.Meta.model.objects.filter(fk_team = fk_team, state = True, solicitudEquipo = 2)
+                for i in integrantes:
+
+                    receiver = i.fk_user.email
+                    receiver = 'leocadio624@gmail.com'
+                    host = settings.EMAIL_HOST
+                    sender = settings.EMAIL_HOST_USER
+                    password = settings.EMAIL_HOST_PASSWORD
+                    
+                    msg = MIMEMultipart()
+                    msg['From'] = sender
+                    msg['To'] = receiver
+                    msg['Subject'] = 'Selección protocolo'
+                    email_body = 'Hola '+i.fk_user.name+' '+i.fk_user.last_name+' el protocolo con número: '+numero+' y título \"'+titulo+'\" en el que estás relacionado cambío a estado seleccionado.'
+                    
+
+
+                    msg.attach(MIMEText(email_body, 'plain'))
+                    email_body_content = msg.as_string()
+
+                    server = smtplib.SMTP(host)
+                    server.starttls()
+
+                    server.login(sender, password)
+                    server.sendmail(sender, receiver, email_body_content)
+                    server.quit()
+            
+
                 
             return Response({'message':'Se ha seleccionado el protocolo correctamente'},status = status.HTTP_200_OK)
         return Response({'message':'Ocurrió una interrupcción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
 
 
+"""
+* Descripcion: Genera evaluacion por parte de sinodal
+* Fecha de la creacion:     24/05/2022
+* Author:                   Eduardo Bernal Leocadio
+"""
+class existeEvalucacionViewSet(viewsets.ModelViewSet):
+    def create(self, request):
+        fk_user     = request.data['fk_user']
+        fk_protocol = request.data['fk_protocol']
+
+        select = SelectProtocoloSerializer.Meta.model.objects.filter(fk_protocol = fk_protocol,  fk_user = fk_user, state = True).first()
+        if select is None:   
+            return Response({'message':'Ocurrió una interrupcción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+        
+        fk_seleccion = select.id
+        evaluacion = EvaluacionSerializer.Meta.model.objects.filter(fk_seleccion = fk_seleccion, state = True)
+        if evaluacion:
+            return Response({'message':'Ya haz evaluado este protocolo'}, status = status.HTTP_226_IM_USED)
+        return Response({'message':1},status = status.HTTP_200_OK)
 
 """
 * Descripcion: Genera evaluacion por parte de sinodal
@@ -264,10 +325,13 @@ class generarEvalucacionViewSet(viewsets.ModelViewSet):
     def create(self, request):
 
         fk_user     = request.data['fk_user']
+        name     = request.data['name']
+        last_name     = request.data['last_name']
         fk_protocol = request.data['fk_protocol']
         fk_protocol_state = 0
         preguntas   = request.data['preguntas']
-        summary     = request.data['summary'] 
+        summary     = request.data['summary']
+        dictamen     = request.data['dictamen']
         primera_evaluacion = [1,3]
         version = 0
         
@@ -276,39 +340,40 @@ class generarEvalucacionViewSet(viewsets.ModelViewSet):
         if protocol is None:   
             return Response({'message':'Ocurrió una interrupcción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
 
+        numero = protocol.number
+        titulo = protocol.title
+        fk_team = protocol.fk_team.id
+        sinodal = name + last_name
+
         fk_protocol_state = protocol.fk_protocol_state.id
         if protocol.fk_inscripccion.id in primera_evaluacion:
             version = 1
         else:
             version = 2
-    
-        dictamen = True
+        
+        
+        
         select = SelectProtocoloSerializer.Meta.model.objects.filter(fk_protocol = fk_protocol,  fk_user = fk_user, state = True).first()
         fk_seleccion = select.id
-
         evaluacion_serializer = EvaluacionSerializer(data = {'fk_seleccion':fk_seleccion, 'observacion_general':summary, 'dictamen':dictamen, 'version':version})
+
         
 
         if  evaluacion_serializer.is_valid():
+            
             evaluacion_serializer.save()
             fk_evaluacion = evaluacion_serializer.data['id']
-
             for i in preguntas:
                 numPregunta = i['id']
                 estado = i['state']
                 observacion = i['summary']
-
-                if  estado == False:
-                    dictamen = False
-
+            
                 pregunta_serializer = PreguntaSerializer(data = {'fk_evaluacion':fk_evaluacion, 'numPregunta':numPregunta, 'estado':estado, 'observacion':observacion})
                 if  pregunta_serializer.is_valid():
                     pregunta_serializer.save()
 
-            #actualiza dictamen
-            evaluacion = EvaluacionSerializer.Meta.model.objects.filter(id = fk_evaluacion).first()
-            evaluacion.dictamen = dictamen
-            evaluacion.save()
+
+
 
             #actualiza estado de protocolos que ya estan seleccionados '6'
             if  fk_protocol_state == 6:
@@ -320,8 +385,37 @@ class generarEvalucacionViewSet(viewsets.ModelViewSet):
                     protocolo = ProtocolSerializer.Meta.model.objects.filter(id  = fk_protocol, state = True).first()
                     protocolo.fk_protocol_state = fk_protocol_state
                     protocolo.save()
+            
+            integrantes = TeamMemberSerializer.Meta.model.objects.filter(fk_team = fk_team, state = True, solicitudEquipo = 2)
+            for i in integrantes:
+                
+                receiver = i.fk_user.email
+                receiver = 'leocadio624@gmail.com'
+                host = settings.EMAIL_HOST
+                sender = settings.EMAIL_HOST_USER
+                password = settings.EMAIL_HOST_PASSWORD
+                
+                msg = MIMEMultipart()
+                msg['From'] = sender
+                msg['To'] = receiver
+                msg['Subject'] = 'Evaluacion protocolo'
+                email_body = 'Hola '+i.fk_user.name+' '+i.fk_user.last_name+' el protocolo con número: '+numero+' y título \"'+titulo+'\" en el que estás relacionado ha sido evaluado por el sinodal '+sinodal+'.'
+                
 
-            return Response({'message':'Se ha generado la evaluación correctamente'},status = status.HTTP_200_OK)            
+
+                msg.attach(MIMEText(email_body, 'plain'))
+                email_body_content = msg.as_string()
+
+                server = smtplib.SMTP(host)
+                server.starttls()
+
+                server.login(sender, password)
+                server.sendmail(sender, receiver, email_body_content)
+                server.quit()
+            
+
+
+            return Response({'message':'Se ha generado la evaluación correctamente'},status = status.HTTP_200_OK)
         return Response({'message':'Ocurrió una interrupcción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
 
         
@@ -402,6 +496,10 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
         for i in evaluaciones:
             if i.dictamen == False : dictamen = False
 
+
+        
+
+
         fk_protocol_state = ProtocolStateSerializer.Meta.model.objects.filter(protocol_state = 8).first()
         protocolo = ProtocolSerializer.Meta.model.objects.filter(id  = fk_protocol, state = True).first()
         protocolo.dictamen = dictamen
@@ -413,7 +511,7 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
         anio = protocolo.fk_periodo.anio
         dictamen = protocolo.dictamen
 
-        protocolo.save()
+        #protocolo.save()
 
         cadena_periodo  = ""
         cadena_dictamen = ""
@@ -428,6 +526,8 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
         fk_team = protocolo.fk_team.id
         alumnos = self.getAlumnos(fk_team)
         sinodales = self.getSinodales(fk_protocol)
+
+        #return Response({'message':'Se ha generado el dictamen de protocolo correctamente'},status = status.HTTP_200_OK)
 
 
         fecha   = date.today()
