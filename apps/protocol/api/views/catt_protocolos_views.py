@@ -510,8 +510,9 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
         periodo = protocolo.fk_periodo.periodo
         anio = protocolo.fk_periodo.anio
         dictamen = protocolo.dictamen
+        fk_team = protocolo.fk_team.id
 
-        #protocolo.save()
+        protocolo.save()
 
         cadena_periodo  = ""
         cadena_dictamen = ""
@@ -523,18 +524,42 @@ class generarDictamenViewSet(viewsets.ModelViewSet):
             cadena_periodo = str(anio+1)+'-1 / '+str(anio+1)+'-2'
 
 
-        fk_team = protocolo.fk_team.id
+        
         alumnos = self.getAlumnos(fk_team)
         sinodales = self.getSinodales(fk_protocol)
 
-        #return Response({'message':'Se ha generado el dictamen de protocolo correctamente'},status = status.HTTP_200_OK)
+        
+        integrantes = TeamMemberSerializer.Meta.model.objects.filter(fk_team = fk_team, state = True, solicitudEquipo = 2)
+        for i in integrantes:
 
+            receiver = i.fk_user.email
+            receiver = 'leocadio624@gmail.com'
+            host = settings.EMAIL_HOST
+            sender = settings.EMAIL_HOST_USER 
+            password = settings.EMAIL_HOST_PASSWORD
+
+            msg = MIMEMultipart()
+            msg['From'] = sender
+            msg['To'] = receiver
+            msg['Subject'] = 'Dictamen  protocolo'
+            email_body = 'Hola '+i.fk_user.name+' '+i.fk_user.last_name+' el protocolo con número: '+numero+' y título \"'+titulo+'\" en el que estás relacionado ha sido dictaminado.'
+
+            msg.attach(MIMEText(email_body, 'plain'))
+            email_body_content = msg.as_string()
+
+            server = smtplib.SMTP(host)
+            server.starttls()
+
+            server.login(sender, password)
+            server.sendmail(sender, receiver, email_body_content)
+            server.quit()
+            
 
         fecha   = date.today()
         dia     = fecha.day
         mes     = fecha.month
         anio    = fecha.year
-
+ 
 
         meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
         fecha_dictamen = 'CDMX, a ' + str(dia)+' de '+meses[mes-1]+' del '+str(anio)

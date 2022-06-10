@@ -133,10 +133,10 @@ inscripccion.save()
 inscripccion = catInscripccion(id = 2, descp='Segunda evalucación', state = False)
 inscripccion.save()
 
-inscripccion = catInscripccion(id = 3, descp='Remedial primera evalucación', state = False)
+inscripccion = catInscripccion(id = 3, descp='Remedial primera evaluación', state = False)
 inscripccion.save()
 
-inscripccion = catInscripccion(id = 4, descp='Remedial segunda evalucación', state = False)
+inscripccion = catInscripccion(id = 4, descp='Remedial segunda evaluación', state = False)
 inscripccion.save()
 
 

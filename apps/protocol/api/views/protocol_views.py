@@ -2,10 +2,11 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from apps.protocol.api.serializers.protocol_serializers import ProtocolSerializer, keyWordSerializer, WordListSerializer
+from apps.protocol.api.serializers.protocol_serializers import ProtocolSerializer, keyWordSerializer, WordListSerializer, SelectProtocoloSerializer, EvaluacionSerializer, PreguntaSerializer
 from apps.protocol.api.serializers.catalogos_serializers import PeriodoListSerializer, InscripccionSerializer
 from apps.team.api.serializers.team_serializers import TeamMemberSerializer
-
+from apps.firma.api.serializers.firma_serializers import FirmaProtocoloSerializer
+from apps.protocol.models import ProtocolState
 
 from apps.team.models import TeamMembers
 from apps.users.models import User
@@ -193,14 +194,6 @@ class ProtocolViewSet(viewsets.ModelViewSet):
             return Response({'message':'Protocolo registrado correctamente'}, status = status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
-        """
-        return Response({'message':'mensaje generico'}, status = status.HTTP_200_OK)
-        """
-        
-        
-
-        
-
     
     #update
     def update(self, request, pk = None):
@@ -209,6 +202,11 @@ class ProtocolViewSet(viewsets.ModelViewSet):
 
             if protocol_serializer.is_valid():
                 protocol_serializer.save()
+
+                fk_inscripccion = int( request.data['fk_inscripccion'] )
+                if  fk_inscripccion == 2 or fk_inscripccion == 4:
+                    self.resetProtocolo(pk)
+                    
 
                 palabras_clave = keyWordSerializer.Meta.model.objects.filter(fk_Protocol = pk, state = True).update(state = False)
                 keyWords = request.data['keyWords']
@@ -220,6 +218,53 @@ class ProtocolViewSet(viewsets.ModelViewSet):
 
                 return Response({'message':'Se ha actualizado el registro de protocolo'}, status = status.HTTP_200_OK)
             return Response({'message':'Ocurrio una interrupcción, intentelo más tarde'}, status = status.HTTP_400_BAD_REQUEST)
+
+    def resetProtocolo(self, pk_protocol):
+
+        estado = False
+        FirmaProtocoloSerializer.Meta.model.objects.filter(fk_protocol = pk_protocol, state = True).update(state = estado)
+
+        fk_protocol_state = ProtocolState.objects.filter(protocol_state = 2).first()
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(id = pk_protocol, state = True).first()
+        protocolo.fk_protocol_state = fk_protocol_state
+        protocolo.save()
+
+        select = SelectProtocoloSerializer.Meta.model.objects.filter(fk_protocol = pk_protocol, state = True).values('id')
+        evaluaciones = EvaluacionSerializer.Meta.model.objects.filter(fk_seleccion__in = select, state = True)
+
+        for i in evaluaciones:
+            i.state = False
+            i.save()
+
+            PreguntaSerializer.Meta.model.objects.filter(fk_evaluacion = i.id, state = True).update(state = estado)
+            
+            
+
+            
+
+    def resetProtocolo2(self, pk_protocol):
+
+
+        estado = True
+        FirmaProtocoloSerializer.Meta.model.objects.filter(fk_protocol = pk_protocol, state = False).update(state = estado)
+        
+        fk_protocol_state = ProtocolState.objects.filter(protocol_state = 8).first()
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(id = pk_protocol).first()
+        
+        protocolo.fk_protocol_state = fk_protocol_state
+        protocolo.save()
+
+
+        select = SelectProtocoloSerializer.Meta.model.objects.filter(fk_protocol = pk_protocol, state = True).values('id')
+        evaluaciones = EvaluacionSerializer.Meta.model.objects.filter(fk_seleccion__in = select)
+
+        for i in evaluaciones:
+            i.state = True
+            i.save()
+            
+            PreguntaSerializer.Meta.model.objects.filter(fk_evaluacion = i.id).update(state = estado)
+
+            
 
     #delete
     def destroy(self, request, pk = None):
