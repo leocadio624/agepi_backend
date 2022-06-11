@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'agepi'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_0279F99DC87445E7A02CE7BF9AF89A19 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5B8440B815D64447B93B73F139E7E02D }}
