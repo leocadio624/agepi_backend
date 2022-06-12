@@ -138,6 +138,64 @@ class asignacionAcademiasViewSet(viewsets.ModelViewSet):
 
         return Response({'message':'Se han enviado los protocolos a las academias'},status = status.HTTP_200_OK)
 
+
+"""
+* Descripcion:  Valida un protocolo reestructurado pasando protocolo 3-firmado a 5-seleccionado
+* Fecha de la creacion:     11/06/2022
+* Author:                   Eduardo B 
+"""
+class validarProtocoloViewSet(viewsets.ModelViewSet):
+    serializer_class = SelectProtocoloSerializer
+
+    def create(self, request):
+        
+        pk_protocol = request.data['pk_protocol']
+
+        protocolo = ProtocolSerializer.Meta.model.objects.filter(id = pk_protocol).first()
+        if  protocolo:
+            #6
+            fk_protocol_state = ProtocolStateSerializer.Meta.model.objects.filter(protocol_state = 6).first()
+            protocolo.fk_protocol_state = fk_protocol_state
+            numero = protocolo.number
+            titulo = protocolo.title
+            protocolo.save()
+            
+            select_protocol = self.serializer_class().Meta.model.objects.filter(fk_protocol = pk_protocol, state = True)
+            for i in select_protocol:
+
+                receiver = i.fk_user.email
+                receiver = 'leocadio624@gmail.com'
+                host = settings.EMAIL_HOST
+                sender = settings.EMAIL_HOST_USER
+                password = settings.EMAIL_HOST_PASSWORD
+                
+                msg = MIMEMultipart()
+                msg['From'] = sender
+                msg['To'] = receiver
+                msg['Subject'] = 'Evaluacion protocolo reestructurado'
+                email_body = 'Hola '+i.fk_user.name+' '+i.fk_user.last_name+' se han echo las correcciones en el protocolo con número: '+numero+' y título \"'+titulo+'\" por lo que tienes dicho protocolo pendiente por evaluar'
+                
+                msg.attach(MIMEText(email_body, 'plain'))
+                email_body_content = msg.as_string()
+
+                server = smtplib.SMTP(host)
+                server.starttls()
+
+                server.login(sender, password)
+                server.sendmail(sender, receiver, email_body_content)
+                server.quit()
+            
+
+            return Response({'message':'Se ha validado y enviado el protocolo a los sinodales'},status = status.HTTP_200_OK)
+        return Response({'message':'Ocurrió una interrupcción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+    
+        
+    
+
+
+
+
+
 """
 * Descripcion: Linea protocolos paso 4
 * Fecha de la creacion:     24/05/2022

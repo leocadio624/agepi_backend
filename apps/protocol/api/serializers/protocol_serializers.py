@@ -150,10 +150,14 @@ class SelectProtocoloLineSerializer(serializers.ModelSerializer):
         evaluado         = 0
         fecha_evaluacion = ''
 
-        evaluacion = Evaluacion.objects.filter(fk_seleccion = instance.id).first()
+        evaluacion = Evaluacion.objects.filter(fk_seleccion = instance.id, state = True).first()
         if  evaluacion:
             fecha_evaluacion = self.convertUTC(evaluacion.created_date)
             evaluado = 1
+            
+        else:
+            fecha_evaluacion = ''
+            evaluado = 0
     
         return {
             'id':instance.id,

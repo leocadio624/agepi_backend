@@ -69,11 +69,9 @@ class FirmaViewSet(viewsets.ModelViewSet):
         password    = request.data['password']
         vigencia    = int(request.data['vigencia'])
 
-        
-
         firma = self.get_serializer().Meta.model.objects.filter(fk_user = fk_user, state = True).first()
         if firma:
-            return Response({'message':'Ya cuentas con una firma electronica'}, status = status.HTTP_226_IM_USED)
+            return Response({'message':'Ya cuentas con una firma electrónica registrada'}, status = status.HTTP_226_IM_USED)
 
 
         date1 = date.today()
@@ -128,7 +126,7 @@ class FirmaViewSet(viewsets.ModelViewSet):
                                             'vigencia_firma'    :date2})
         if  serializer.is_valid():
             serializer.save()
-            return Response({'message':'Se ha generado tu firma electronica correctamente'}, status = status.HTTP_200_OK)
+            return Response({'message':'Se ha generado tu firma electrónica correctamente'}, status = status.HTTP_200_OK)
         return Response({'message':'Ocurrio un error en la generacion de tú firma electronica'}, status = status.HTTP_400_BAD_REQUEST)
 
 
@@ -164,8 +162,6 @@ class FirmaViewSet(viewsets.ModelViewSet):
 
 class FirmaPassViewSet(viewsets.ModelViewSet):
     serializer_class    = FirmaSerializer
-
-    
 
     #post
     def create(self, request):
@@ -298,25 +294,32 @@ class verificaFirmaViewSet(viewsets.ModelViewSet):
             return Response({'message':'Ocurrió una interrupcción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
         protocolo_serializer    = ProtocolSerializer(ProtocolSerializer.Meta.model.objects.filter(id = pk_protocol, state = True).first(), many = False)
         
-        firmaObj = FirmaProtocoloSerializer.Meta.model.objects.filter(fk_user = pk_user, state = True).first()
-        if  firmaObj is None:
+        firma_protocol = FirmaProtocoloSerializer.Meta.model.objects.filter(fk_protocol = pk_protocol, fk_user = pk_user, state = True).first()
+        if  firma_protocol is None:
             return Response({'message':'Este miembro de equipo aun no ha firmado el protocolo'}, status = status.HTTP_400_BAD_REQUEST)
 
 
-        FirmaSerializer
-
-
-        fileProtocol = protocolo_serializer.data['fileProtocol']
-        pathFile    = str(base) + str(fileProtocol)
-        public_key   = firmaObj.ruta_public_key
-
-        
         try:
             firma = firma.encode('UTF-8')
             firma = base64.b64decode(firma)
         except:
-            return Response({'message':'La firma proporcionada no es válida en el protocolo'}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({'message':'Formato de firma (sello digital) incorrecto'}, status = status.HTTP_400_BAD_REQUEST)
 
+        fileProtocol = protocolo_serializer.data['fileProtocol']
+        pathFile    = str(base) + str(fileProtocol)
+
+
+        if  firma_protocol.firma_sat == False:
+            #obtenemos ruta de public.pem
+            registro_firma = FirmaSerializer.Meta.model.objects.filter(fk_user = pk_user, state = True).first()
+            if  registro_firma is None:
+                return Response({'message':'Ocurrió una interrupcción, intentelo mas tarde'}, status = status.HTTP_400_BAD_REQUEST)
+
+            public_key   = registro_firma.ruta_firma+str('public.pem')
+
+        else:
+            public_key     = os.path.dirname(pathFile) +'/'+str(pk_user)+'/public.pem'
+            
 
         f = open(public_key, 'r')
         pubKey = RSA.import_key(f.read())
@@ -331,6 +334,10 @@ class verificaFirmaViewSet(viewsets.ModelViewSet):
             return Response({'message':'La firma es válida en el protocolo'}, status = status.HTTP_200_OK)
         except:
             return Response({'message':'La firma proporcionada no es válida en el protocolo'}, status = status.HTTP_400_BAD_REQUEST)
+
+            
+
+
             
 
 
