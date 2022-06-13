@@ -130,7 +130,7 @@ estado_protocolo.save()
 inscripccion = catInscripccion(id = 1, descp='Primera evaluación', state = False)
 inscripccion.save()
 
-inscripccion = catInscripccion(id = 2, descp='Segunda evalucación', state = False)
+inscripccion = catInscripccion(id = 2, descp='Segunda evaluación', state = False)
 inscripccion.save()
 
 inscripccion = catInscripccion(id = 3, descp='Remedial primera evaluación', state = False)

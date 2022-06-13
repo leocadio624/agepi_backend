@@ -9,6 +9,7 @@ class ProtocolStateAdmin(admin.ModelAdmin):
 class keyWordAdmin(admin.ModelAdmin):
     list_display = ('id', 'word')
 
+
 admin.site.register(ProtocolState, ProtocolStateAdmin)
 admin.site.register(Protocol)
 admin.site.register(keyWord, keyWordAdmin)
