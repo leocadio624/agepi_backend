@@ -33,8 +33,9 @@ class TeamViewSet(viewsets.ModelViewSet):
         if  equipo:
             return Response({'message':'Ya estas perteneces al equipo '+str(equipo.fk_team.nombre)+''}, status = status.HTTP_400_BAD_REQUEST)
 
+
         serializer = self.serializer_class(data = request.data)
-        if serializer.is_valid():
+        if  serializer.is_valid():
             serializer.save()
 
             fk_team = serializer.data['id']
@@ -120,7 +121,6 @@ class TeamMemberViewSet(viewsets.ModelViewSet):
         return self.get_serializer().Meta.model.objects.filter(fk_user = fk_user, state = True, solicitudEquipo  = 2)
 
     def create(self, request):
-
 
         fk_user = request.data['fk_user']
         equipos =  self.get_serializer(self.get_queryset(fk_user), many = True)
@@ -270,19 +270,26 @@ class AlumnoTeamViewSet(viewsets.ModelViewSet):
 
         
     def create(self, request):
-
         id = request.data['id']
         fk_user = request.data['fk_user']
         
-
-        team = TeamMembers.objects.filter(state = True, fk_user = id).values('fk_team').first()
+        team = TeamMembers.objects.filter(state = True, fk_user = id).first()
         if team is None:
             return Response({'message' : 'Para enviar una solicitud de equipo debe crear ó pertenecer a un equipo'}, status = status.HTTP_206_PARTIAL_CONTENT)
         
-        fk_team = team['fk_team']
+        #pivote
+        fk_team = team.fk_team.id
+        integrantes = TeamMembers.objects.filter(fk_team = fk_team, state = True, solicitudEquipo = 2).values('id')
+        alumnos = AlumnoTeamSerializer.Meta.model.objects.filter(state = True, fk_user__in = integrantes).exclude(alta_app = False, fk_user = 0)
+
+        if  len(alumnos) == 4:
+            return Response({'message' : 'El equipo de protocolo al que perteneces ya cuenta con 4 integrantes'}, status = status.HTTP_206_PARTIAL_CONTENT)
+            
+
         #verificar esta condicion
         #protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = fk_team, fk_protocol_state = 1, state = True).first()
         protocolo = ProtocolSerializer.Meta.model.objects.filter(fk_team = fk_team, state = True).first()
+
         if  protocolo:
             return Response({'message':'No es posible enviar una solicitud de equipo cuando ya se ha iniciado el registro de un protocolo'}, status = status.HTTP_206_PARTIAL_CONTENT)
 

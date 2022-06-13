@@ -187,8 +187,8 @@ def codeActivation():
 
 
 def sendEmailCode(name, last_name, receiver, code, bandera):
-    receiver = 'leocadio624@gmail.com'
 
+    #receiver = 'leocadio624@gmail.com'
     host = settings.EMAIL_HOST
     sender = settings.EMAIL_HOST_USER
     password = settings.EMAIL_HOST_PASSWORD

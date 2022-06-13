@@ -3,6 +3,8 @@ from rest_framework import serializers
 from apps.comunidad.models import Alumno, Profesor
 from apps.users.models import User
 
+from datetime import date
+from apps.protocol.models import Protocol, PeriodoEscolar
 
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
@@ -98,8 +100,18 @@ class AlumnoTeamSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
 
+        current_year = date.today().year
+        periodo = PeriodoEscolar.objects.filter(state = True, anio = current_year).first()
+        
+        if periodo:
+            periodo_escolar = 1
+        else:
+            periodo_escolar = 0
+
+
         instance_user = User.objects.filter(id = instance.fk_user).first()
         return {
+            'periodo_escolar':periodo_escolar,
             'pk_user':instance.fk_user,
             'name':instance_user.name,
             'last_name':instance_user.last_name,
@@ -127,10 +139,42 @@ class ProfesorTeamSerializer(serializers.ModelSerializer):
         num_equipos = len( TeamMembers.objects.filter(fk_user = instance.fk_user, state = True, solicitudEquipo = 2) )
         disponible = 0 if num_equipos == 6 else 1
 
-        instance_user = User.objects.filter(id = instance.fk_user).first()
+        equipos = TeamMembers.objects.filter(fk_user = instance.fk_user, state = True, solicitudEquipo = 2).values('id')
+        
 
+
+        
+        solicitudes_disp = 0
+        periodo_escolar = 0
+        periodo_obj = PeriodoEscolar.objects.filter(state = True).first()
+
+        anio = 0
+        periodo = 0
+        if  periodo_obj:
+            periodo_escolar = 1
+
+            if periodo_obj.periodo == 2:
+                anio = periodo_obj.anio
+                periodo = 1
+
+            if periodo_obj.periodo == 1:
+                anio = periodo_obj.anio - 1
+                periodo = 2
+
+            periodo_anterior = PeriodoEscolar.objects.filter(periodo = periodo, anio = anio).first()
+
+            if periodo_anterior:
+                protocolos = Protocol.objects.filter(fk_periodo = periodo_anterior, fk_team__in = equipos, state = True)
+                solicitudes_disp = 6 - len(protocolos) - num_equipos
+
+            else:
+                solicitudes_disp = 0
+            
+
+        instance_user = User.objects.filter(id = instance.fk_user).first()
         return {
-            'disponible':disponible,
+            'periodo_escolar':periodo_escolar,
+            'solicitudes_disp':solicitudes_disp,
             'pk_user':instance.fk_user,
             'name':instance_user.name,
             'last_name':instance_user.last_name,
@@ -138,6 +182,6 @@ class ProfesorTeamSerializer(serializers.ModelSerializer):
             'academia':instance.fk_academia.academia,
             'email':instance.email,
             'noEmpleado':instance.noEmpleado
-        }
+        } 
 
     
